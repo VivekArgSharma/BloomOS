@@ -88,3 +88,55 @@ export type ChatResponse = {
   answer: string
   grounding: string[]
 }
+
+export type HealthPoint = {
+  label: string
+  score: number
+}
+
+export type CompletionPoint = {
+  label: string
+  completed: number
+  total: number
+  rate: number
+}
+
+export type IssueCount = {
+  issue: string
+  count: number
+}
+
+export type PlantAnalytics = {
+  plant_id: string
+  current_health: number
+  average_health: number
+  health_delta: number
+  streak_days: number
+  task_completion_rate: number
+  watering_consistency: number
+  issue_breakdown: IssueCount[]
+  health_history: HealthPoint[]
+  completion_history: CompletionPoint[]
+  insight: string
+}
+
+export type GardenPlantSnapshot = {
+  plant_id: string
+  common_name: string
+  health_score: number
+  completion_rate: number
+  recovery_mode: boolean
+}
+
+export type GardenAnalytics = {
+  garden_id: string
+  overall_health: number
+  average_completion_rate: number
+  plants_in_recovery: number
+  healthiest_plant?: string | null
+  needs_attention_plant?: string | null
+  issue_breakdown: IssueCount[]
+  health_history: HealthPoint[]
+  plant_snapshots: GardenPlantSnapshot[]
+  recommended_focus: string
+}

@@ -1,9 +1,21 @@
 import axios from 'axios'
 
-import type { CatalogItem, ChatResponse, DailyLog, DailyPlan, Garden, Plant, PlantDetails, Weather } from '../types'
+import type { CatalogItem, ChatResponse, DailyLog, DailyPlan, Garden, GardenAnalytics, Plant, PlantAnalytics, PlantDetails, Weather } from '../types'
+import { supabase } from './supabase'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api',
+})
+
+api.interceptors.request.use(async (config) => {
+  if (supabase) {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
 })
 
 export async function fetchGardens() {
@@ -21,9 +33,27 @@ export async function fetchGardenPlants(gardenId: string) {
   return data
 }
 
+export async function fetchGardenAnalytics(gardenId: string) {
+  const { data } = await api.get<GardenAnalytics>(`/gardens/${gardenId}/analytics`)
+  return data
+}
+
 export async function fetchCatalog() {
   const { data } = await api.get<CatalogItem[]>('/catalog')
   return data
+}
+
+export async function identifyPlant(payload: { file?: File | null; searchHint?: string }) {
+  const form = new FormData()
+  if (payload.searchHint) form.append('search_hint', payload.searchHint)
+  if (payload.file) form.append('image', payload.file)
+  const { data } = await api.post('/plants/identify', form)
+  return data as {
+    matched_catalog: boolean
+    confidence: number
+    rationale: string
+    plant: CatalogItem
+  }
 }
 
 export async function createPlant(payload: {
@@ -52,14 +82,20 @@ export async function fetchPlantTasks(plantId: string) {
   return data
 }
 
+export async function fetchPlantAnalytics(plantId: string) {
+  const { data } = await api.get<PlantAnalytics>(`/plants/${plantId}/analytics`)
+  return data
+}
+
 export async function completeTask(plantId: string, taskId: string) {
   const { data } = await api.post(`/plants/${plantId}/tasks/${taskId}`)
   return data
 }
 
-export async function analyzePlant(plantId: string, observations: string) {
+export async function analyzePlant(plantId: string, payload: { file: File; observations: string }) {
   const form = new FormData()
-  form.append('observations', observations)
+  form.append('observations', payload.observations)
+  form.append('image', payload.file)
   const { data } = await api.post<DailyLog>(`/plants/${plantId}/analyze`, form)
   return data
 }

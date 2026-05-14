@@ -1,15 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
+import { AuthRequired } from '../components/AuthRequired'
 import { CatalogPreview } from '../components/CatalogPreview'
 import { CreateGardenForm } from '../components/CreateGardenForm'
+import { useAuth } from '../context/AuthContext'
 import { createGarden, fetchCatalog, fetchGardens, fetchWeather } from '../services/api'
 
 export function DashboardPage() {
+  const { user, loading } = useAuth()
   const queryClient = useQueryClient()
-  const gardensQuery = useQuery({ queryKey: ['gardens'], queryFn: fetchGardens })
-  const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog })
-  const weatherQuery = useQuery({ queryKey: ['weather', 'dashboard'], queryFn: () => fetchWeather('Bengaluru') })
+  const gardensQuery = useQuery({ queryKey: ['gardens'], queryFn: fetchGardens, enabled: Boolean(user) })
+  const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog, enabled: Boolean(user) })
+  const weatherQuery = useQuery({ queryKey: ['weather', 'dashboard'], queryFn: () => fetchWeather('Bengaluru'), enabled: Boolean(user) })
 
   const createMutation = useMutation({
     mutationFn: createGarden,
@@ -20,8 +23,17 @@ export function DashboardPage() {
   const totalPlants = gardens.reduce((sum, garden) => sum + garden.plant_count, 0)
   const avgHealth = gardens.length ? Math.round(gardens.reduce((sum, garden) => sum + garden.health_score, 0) / gardens.length) : 0
 
+  if (loading) {
+    return <section className="panel"><p>Loading account...</p></section>
+  }
+
+  if (!user) {
+    return <AuthRequired message="Sign in first so PlantIQ can load your gardens, ownership-aware analytics, and uploads." />
+  }
+
   return (
     <div className="grid-layout">
+      {/* Overview Spotlight */}
       <section className="panel spotlight">
         <div className="section-head">
           <div>
@@ -46,8 +58,10 @@ export function DashboardPage() {
         </div>
       </section>
 
+      {/* Create Garden */}
       <CreateGardenForm onSubmit={async (payload) => createMutation.mutateAsync(payload)} />
 
+      {/* Gardens List */}
       <section className="panel">
         <div className="section-head">
           <div>
@@ -56,11 +70,14 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="stack-list">
+          {gardens.length === 0 ? (
+            <p className="muted">No gardens yet. Create one above to begin your plant care journey.</p>
+          ) : null}
           {gardens.map((garden) => (
             <Link key={garden.id} className="garden-card" to={`/garden/${garden.id}`}>
               <div>
                 <strong>{garden.name}</strong>
-                <p>{garden.location_type} {garden.city ? `- ${garden.city}` : ''}</p>
+                <p>{garden.location_type} {garden.city ? `· ${garden.city}` : ''}</p>
               </div>
               <div className="garden-meta">
                 <span>{garden.plant_count} plants</span>
@@ -71,6 +88,7 @@ export function DashboardPage() {
         </div>
       </section>
 
+      {/* Catalog Preview */}
       <CatalogPreview items={catalogQuery.data ?? []} />
     </div>
   )

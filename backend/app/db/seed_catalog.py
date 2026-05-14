@@ -76,7 +76,6 @@ PLANT_CATALOG = [
     make_plant("Geranium", "Pelargonium zonale", "easy", ["flowering", "balcony"], 4, "full sun", "medium", "every 2 weeks", "well-draining potting mix", ["Remove faded flower heads"]),
     make_plant("Petunia", "Petunia hybrida", "easy", ["flowering", "balcony"], 2, "full sun", "medium", "weekly bloom feed", "fertile well-draining mix", ["Needs regular watering in containers"]),
     make_plant("Aloe Polyphylla", "Aloe polyphylla", "advanced", ["succulent", "collector"], 10, "bright light", "low", "light feeding twice a year", "very gritty mix", ["Needs cool roots and sharp drainage"]),
-    make_plant("Money Plant", "Epipremnum aureum", "easy", ["indoor", "vine"], 7, "medium to bright indirect", "medium", "monthly", "well-draining mix", ["Common regional alias for pothos"]),
     make_plant("Croton", "Codiaeum variegatum", "moderate", ["indoor", "colorful"], 5, "bright indirect", "high", "monthly", "rich airy mix", ["Needs stable warmth to keep color"]),
     make_plant("Anthurium", "Anthurium andraeanum", "moderate", ["indoor", "flowering"], 6, "bright indirect", "high", "monthly orchid-strength", "chunky aroid mix", ["Prefers humidity and airflow"]),
     make_plant("Syngonium", "Syngonium podophyllum", "easy", ["indoor", "arrowhead"], 6, "bright indirect", "medium", "monthly", "well-draining mix", ["Can trail or climb"]),

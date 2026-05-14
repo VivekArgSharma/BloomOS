@@ -135,3 +135,55 @@ class WeatherResponse(BaseModel):
     temperature_c: int
     humidity: int
     rain_chance: int
+
+
+class HealthPoint(BaseModel):
+    label: str
+    score: int
+
+
+class CompletionPoint(BaseModel):
+    label: str
+    completed: int
+    total: int
+    rate: int
+
+
+class IssueCount(BaseModel):
+    issue: str
+    count: int
+
+
+class PlantAnalytics(BaseModel):
+    plant_id: UUID
+    current_health: int
+    average_health: int
+    health_delta: int
+    streak_days: int
+    task_completion_rate: int
+    watering_consistency: int
+    issue_breakdown: list[IssueCount]
+    health_history: list[HealthPoint]
+    completion_history: list[CompletionPoint]
+    insight: str
+
+
+class GardenPlantSnapshot(BaseModel):
+    plant_id: UUID
+    common_name: str
+    health_score: int
+    completion_rate: int
+    recovery_mode: bool
+
+
+class GardenAnalytics(BaseModel):
+    garden_id: UUID
+    overall_health: int
+    average_completion_rate: int
+    plants_in_recovery: int
+    healthiest_plant: str | None = None
+    needs_attention_plant: str | None = None
+    issue_breakdown: list[IssueCount]
+    health_history: list[HealthPoint]
+    plant_snapshots: list[GardenPlantSnapshot]
+    recommended_focus: str

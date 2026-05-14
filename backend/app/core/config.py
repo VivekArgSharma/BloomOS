@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import lru_cache  # noqa: F401 (kept for future use)
 from pathlib import Path
 
 from pydantic import Field
@@ -17,15 +17,19 @@ class Settings(BaseSettings):
     supabase_anon_key: str = Field(default="", alias="SUPABASE_ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
 
-    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    # OpenRouter LLM settings
+    openrouter_api_key: str = Field(default="", alias="OPENROUTER_API_KEY")
+    openrouter_model: str = Field(default="nvidia/nemotron-nano-8b-v1:free", alias="OPENROUTER_MODEL")
+    openrouter_timeout: int = Field(default=60, alias="OPENROUTER_TIMEOUT")
     openweathermap_api_key: str = Field(default="", alias="OPENWEATHERMAP_API_KEY")
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
+    supabase_storage_bucket: str = Field(default="plant-photos", alias="SUPABASE_STORAGE_BUCKET")
+    max_upload_bytes: int = Field(default=6_000_000, alias="MAX_UPLOAD_BYTES")
 
     rag_docs_path: Path = Field(default=Path("./data/rag_docs"), alias="RAG_DOCS_PATH")
     faiss_index_path: Path = Field(default=Path("./data/faiss_index"), alias="FAISS_INDEX_PATH")
     use_mock_data: bool = Field(default=True, alias="USE_MOCK_DATA")
 
 
-@lru_cache
 def get_settings() -> Settings:
     return Settings()

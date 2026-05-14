@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-from app.core.config import get_settings
+from app.core.config import Settings
 
 
 class RagService:
-    def __init__(self) -> None:
-        settings = get_settings()
+    def __init__(self, settings: Settings) -> None:
         self.docs_path = Path(settings.rag_docs_path)
         self.index_path = Path(settings.faiss_index_path)
+        self.manifest_path = self.index_path / "manifest.json"
 
     def status(self) -> dict[str, str | int]:
         docs = list(self.docs_path.glob("*.pdf")) if self.docs_path.exists() else []
@@ -22,15 +23,17 @@ class RagService:
         }
 
     def grounding(self, question: str) -> list[str]:
-        docs = list(self.docs_path.glob("*.pdf")) if self.docs_path.exists() else []
-        if not docs:
+        if not self.manifest_path.exists():
             return [
-                "No PDF manuals ingested yet.",
-                "Drop plant care PDFs into backend/data/rag_docs and run the ingestion script.",
-                f"Question captured for future grounding: {question}",
+                "No RAG corpus has been ingested yet.",
+                "Add PDFs to backend/data/rag_docs and run python scripts/ingest_rag.py.",
+                f"Pending question for future grounding: {question}",
             ]
+
+        manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        docs = list(manifest.keys())[:3]
         return [
-            f"RAG source folder contains {len(docs)} PDF file(s).",
-            "The full ingestion pipeline is wired through backend/scripts/ingest_rag.py.",
-            "Replace this placeholder retrieval method with FAISS-backed similarity search after your first ingest.",
+            f"RAG corpus ready with {len(manifest)} document(s).",
+            f"Top local sources available: {', '.join(docs)}",
+            "Full FAISS retrieval can be layered into this service once PDFs are added.",
         ]
