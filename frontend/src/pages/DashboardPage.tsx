@@ -1,0 +1,77 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
+
+import { CatalogPreview } from '../components/CatalogPreview'
+import { CreateGardenForm } from '../components/CreateGardenForm'
+import { createGarden, fetchCatalog, fetchGardens, fetchWeather } from '../services/api'
+
+export function DashboardPage() {
+  const queryClient = useQueryClient()
+  const gardensQuery = useQuery({ queryKey: ['gardens'], queryFn: fetchGardens })
+  const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog })
+  const weatherQuery = useQuery({ queryKey: ['weather', 'dashboard'], queryFn: () => fetchWeather('Bengaluru') })
+
+  const createMutation = useMutation({
+    mutationFn: createGarden,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gardens'] }),
+  })
+
+  const gardens = gardensQuery.data ?? []
+  const totalPlants = gardens.reduce((sum, garden) => sum + garden.plant_count, 0)
+  const avgHealth = gardens.length ? Math.round(gardens.reduce((sum, garden) => sum + garden.health_score, 0) / gardens.length) : 0
+
+  return (
+    <div className="grid-layout">
+      <section className="panel spotlight">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Overview</p>
+            <h2>Your living system at a glance</h2>
+          </div>
+          <span className="pill">{weatherQuery.data?.summary ?? 'Loading weather'}</span>
+        </div>
+        <div className="metric-row">
+          <article>
+            <strong>{gardens.length}</strong>
+            <span>Gardens</span>
+          </article>
+          <article>
+            <strong>{totalPlants}</strong>
+            <span>Plants</span>
+          </article>
+          <article>
+            <strong>{avgHealth}</strong>
+            <span>Avg health</span>
+          </article>
+        </div>
+      </section>
+
+      <CreateGardenForm onSubmit={async (payload) => createMutation.mutateAsync(payload)} />
+
+      <section className="panel">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Gardens</p>
+            <h3>Multi-zone care management</h3>
+          </div>
+        </div>
+        <div className="stack-list">
+          {gardens.map((garden) => (
+            <Link key={garden.id} className="garden-card" to={`/garden/${garden.id}`}>
+              <div>
+                <strong>{garden.name}</strong>
+                <p>{garden.location_type} {garden.city ? `- ${garden.city}` : ''}</p>
+              </div>
+              <div className="garden-meta">
+                <span>{garden.plant_count} plants</span>
+                <span>{garden.health_score} health</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <CatalogPreview items={catalogQuery.data ?? []} />
+    </div>
+  )
+}
