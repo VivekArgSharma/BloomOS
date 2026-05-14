@@ -25,6 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) {
+      setSession(null)
+      setUser({ id: 'mock-user', email: 'demo@plantiq.local' } as User)
       setLoading(false)
       return
     }
