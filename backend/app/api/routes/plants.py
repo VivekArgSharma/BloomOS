@@ -8,9 +8,11 @@ from app.core.auth import CurrentUser, get_current_user
 from app.core.config import Settings, get_settings
 from app.core.deps import get_store, get_supabase_admin_client
 from app.models.schemas import DailyLog, DailyPlan, Plant, PlantAnalytics, PlantCreate, PlantDetails, PlantIdentificationResponse, PlantCatalogItem, TaskUpdateResponse
-from app.services.analysis import AnalysisService
+from app.services.analysis import get_analysis_service
 from app.services.catalog import CatalogService
 from app.services.gemini import GeminiService
+from app.services.plantid import PlantIdService
+from app.services.plantnet import PlantNetService
 from app.services.planner import PlannerService
 from app.services.storage import StorageService
 from app.services.weather import WeatherService
@@ -30,7 +32,9 @@ async def _read_image(upload: UploadFile | None, settings: Settings) -> tuple[by
 
 @router.get("/catalog", response_model=list[PlantCatalogItem])
 def get_catalog(store=Depends(get_store), user: CurrentUser = Depends(get_current_user)) -> list[PlantCatalogItem]:
-    return CatalogService(store, GeminiService(get_settings())).list_catalog()
+    gemini = GeminiService(get_settings())
+    plantnet = PlantNetService(get_settings())
+    return CatalogService(store, gemini, plantnet).list_catalog()
 
 
 @router.post("/plants/identify", response_model=PlantIdentificationResponse)
@@ -43,7 +47,9 @@ async def identify_plant(
 ) -> PlantIdentificationResponse:
     image_bytes, mime_type, filename = await _read_image(image, settings)
     hint = search_hint or filename
-    return CatalogService(store, GeminiService(settings)).identify(hint, image_bytes=image_bytes, mime_type=mime_type)
+    gemini = GeminiService(settings)
+    plantnet = PlantNetService(settings)
+    return CatalogService(store, gemini, plantnet).identify(hint, image_bytes=image_bytes, mime_type=mime_type)
 
 
 @router.post("/plants", response_model=Plant, status_code=201)
@@ -95,7 +101,8 @@ async def analyze_plant(
     else:
         photo_url = f"mock://uploads/{filename}"
 
-    analysis = AnalysisService(GeminiService(settings)).analyze_photo(
+    analysis_service = get_analysis_service(settings)
+    analysis = analysis_service.analyze_photo(
         plant,
         observations,
         image_bytes=image_bytes,

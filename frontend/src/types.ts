@@ -140,3 +140,39 @@ export type GardenAnalytics = {
   plant_snapshots: GardenPlantSnapshot[]
   recommended_focus: string
 }
+
+export type Badge = {
+  id: string
+  name: string
+  description: string
+  icon: string
+  unlocked: boolean
+}
+
+export type UserBadges = {
+  badges: Badge[]
+  total_unlocked: number
+  total_available: number
+}
+
+export type UserStats = {
+  garden_count: number
+  plant_count: number
+  current_streak: number
+  longest_streak: number
+  total_tasks_completed: number
+  total_photos_uploaded: number
+  recovery_mode_exits: number
+  chat_questions_asked: number
+  weather_decisions: number
+  plants_at_health_90_plus: number
+}
+
+export type CompatibilityCheck = {
+  compatible: boolean
+  confidence: number
+  issues: string[]
+  recommendations: string[]
+  light_compatibility: Record<string, any>
+  humidity_compatibility: Record<string, any>
+}

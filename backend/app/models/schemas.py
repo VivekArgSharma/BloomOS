@@ -23,7 +23,7 @@ class Garden(GardenBase):
     id: UUID = Field(default_factory=uuid4)
     user_id: str = "demo-user"
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    health_score: int = 82
+    health_score: int = Field(default=82, ge=0, le=100)
     plant_count: int = 0
 
 
@@ -60,7 +60,7 @@ class Plant(BaseModel):
     species_name: str
     care_profile: CareProfile
     source: Literal["catalog", "image"] = "catalog"
-    current_health_score: int = 8
+    current_health_score: int = Field(default=8, ge=1, le=10)
     recovery_mode: bool = False
     added_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -73,7 +73,7 @@ class PlantIdentificationResponse(BaseModel):
 
 
 class AnalysisResult(BaseModel):
-    health_score: int
+    health_score: int = Field(ge=1, le=10)
     visible_issues: list[str]
     soil_moisture: str
     recommended_action: str
@@ -139,7 +139,7 @@ class WeatherResponse(BaseModel):
 
 class HealthPoint(BaseModel):
     label: str
-    score: int
+    score: int = Field(ge=1, le=10)
 
 
 class CompletionPoint(BaseModel):
@@ -171,8 +171,8 @@ class PlantAnalytics(BaseModel):
 class GardenPlantSnapshot(BaseModel):
     plant_id: UUID
     common_name: str
-    health_score: int
-    completion_rate: int
+    health_score: int = Field(ge=1, le=10)
+    completion_rate: int = Field(ge=0, le=100)
     recovery_mode: bool
 
 
@@ -187,3 +187,46 @@ class GardenAnalytics(BaseModel):
     health_history: list[HealthPoint]
     plant_snapshots: list[GardenPlantSnapshot]
     recommended_focus: str
+
+
+class CompatibilityCheck(BaseModel):
+    compatible: bool
+    confidence: int
+    issues: list[str]
+    recommendations: list[str]
+    light_compatibility: dict[str, Any]
+    humidity_compatibility: dict[str, Any]
+
+
+class Badge(BaseModel):
+    id: str
+    name: str
+    description: str
+    icon: str
+    unlocked: bool
+
+
+class UserBadges(BaseModel):
+    badges: list[Badge]
+    total_unlocked: int
+    total_available: int
+
+
+class UserStats(BaseModel):
+    garden_count: int
+    plant_count: int
+    current_streak: int
+    longest_streak: int
+    total_tasks_completed: int
+    total_photos_uploaded: int
+    recovery_mode_exits: int
+    chat_questions_asked: int
+    weather_decisions: int
+    plants_at_health_90_plus: int
+
+
+class AnalysisPreview(BaseModel):
+    health_score: int = Field(ge=1, le=10)
+    summary: str
+    issues: list[str]
+    is_urgent: bool

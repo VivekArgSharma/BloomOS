@@ -6,11 +6,12 @@ import { useParams } from 'react-router-dom'
 import { AuthRequired } from '../components/AuthRequired'
 import { ChatPanel } from '../components/ChatPanel'
 import { CompletionBars } from '../components/CompletionBars'
+import { FileUploadButton } from '../components/FileUploadButton'
 import { IssueBreakdown } from '../components/IssueBreakdown'
 import { TaskChecklist } from '../components/TaskChecklist'
 import { TrendChart } from '../components/TrendChart'
 import { useAuth } from '../context/AuthContext'
-import { analyzePlant, askPlantChat, completeTask, fetchPlantAnalytics, fetchPlantDetails, fetchPlantLogs, fetchPlantTasks } from '../services/api'
+import { analyzePlant, askPlantChat, completeTask, fetchPlantAnalytics, fetchPlantDetails, fetchPlantLogs, fetchPlantTasks, previewPlantAnalysis } from '../services/api'
 
 export function PlantPage() {
   const { plantId = '' } = useParams()
@@ -18,11 +19,29 @@ export function PlantPage() {
   const queryClient = useQueryClient()
   const [analysisFile, setAnalysisFile] = useState<File | null>(null)
   const [observations, setObservations] = useState('')
+  const [previewData, setPreviewData] = useState<{ health_score: number; summary: string; issues: string[]; is_urgent: boolean } | null>(null)
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false)
 
   const detailsQuery = useQuery({ queryKey: ['plant', plantId], queryFn: () => fetchPlantDetails(plantId), enabled: Boolean(plantId && user) })
   const logsQuery = useQuery({ queryKey: ['plant-logs', plantId], queryFn: () => fetchPlantLogs(plantId), enabled: Boolean(plantId && user) })
   const tasksQuery = useQuery({ queryKey: ['plant-tasks', plantId], queryFn: () => fetchPlantTasks(plantId), enabled: Boolean(plantId && user) })
   const analyticsQuery = useQuery({ queryKey: ['plant-analytics', plantId], queryFn: () => fetchPlantAnalytics(plantId), enabled: Boolean(plantId && user) })
+
+  const previewMutation = useMutation({
+    mutationFn: async () => {
+      if (!analysisFile) throw new Error('Select a photo first')
+      setIsPreviewLoading(true)
+      const result = await previewPlantAnalysis(plantId, analysisFile, observations)
+      return result
+    },
+    onSuccess: (data) => {
+      setPreviewData(data)
+      setIsPreviewLoading(false)
+    },
+    onError: () => {
+      setIsPreviewLoading(false)
+    },
+  })
 
   const analyzeMutation = useMutation({
     mutationFn: () => {
@@ -38,6 +57,7 @@ export function PlantPage() {
       queryClient.invalidateQueries({ queryKey: ['plant-analytics', plantId] })
       setAnalysisFile(null)
       setObservations('')
+      setPreviewData(null)
     },
   })
 
@@ -53,6 +73,11 @@ export function PlantPage() {
   const logs = logsQuery.data ?? []
   const plan = tasksQuery.data ?? detailsQuery.data?.plan
   const analytics = analyticsQuery.data
+
+  const handleFileSelect = (file: File | null) => {
+    setAnalysisFile(file)
+    setPreviewData(null)
+  }
 
   if (loading) {
     return <section className="panel"><p>Loading account...</p></section>
@@ -130,14 +155,61 @@ export function PlantPage() {
           </div>
         </div>
         <div className="form-panel">
-          <input type="file" accept="image/*" onChange={(event) => setAnalysisFile(event.target.files?.[0] ?? null)} />
-          <textarea value={observations} onChange={(event) => setObservations(event.target.value)} placeholder="Optional notes: yellow edges, drooping, dry soil, new growth..." rows={4} />
-          <button onClick={() => analyzeMutation.mutate()} disabled={!analysisFile || analyzeMutation.isPending}>
-            {analyzeMutation.isPending ? 'Analyzing photo...' : 'Analyze uploaded photo'}
-          </button>
-          {analyzeMutation.isError ? <p className="status-text">{(analyzeMutation.error as Error).message}</p> : null}
-          {analysisFile ? <p className="status-text">Selected: {analysisFile.name}</p> : null}
+          <FileUploadButton
+            onFileSelect={handleFileSelect}
+            selectedFile={analysisFile}
+            label="Upload plant photo"
+          />
+          <textarea 
+            value={observations} 
+            onChange={(event) => setObservations(event.target.value)} 
+            placeholder="Optional notes: yellow edges, drooping, dry soil, new growth..." 
+            rows={3} 
+          />
+          
+          {analysisFile && (
+            <div className="upload-actions">
+              <button 
+                onClick={() => previewMutation.mutate()} 
+                disabled={isPreviewLoading || previewMutation.isPending}
+                className="secondary"
+              >
+                {isPreviewLoading ? 'Analyzing...' : 'Preview Analysis'}
+              </button>
+              <button 
+                onClick={() => analyzeMutation.mutate()} 
+                disabled={!analysisFile || analyzeMutation.isPending}
+              >
+                {analyzeMutation.isPending ? 'Saving...' : 'Save to Diary'}
+              </button>
+            </div>
+          )}
+          
+          {analyzeMutation.isError ? <p className="status-text error">{(analyzeMutation.error as Error).message}</p> : null}
         </div>
+
+        {/* Analysis Preview */}
+        {isPreviewLoading && (
+          <div className="analysis-loading">
+            <div className="spinner"></div>
+            <span>Analyzing your plant photo...</span>
+          </div>
+        )}
+
+        {previewData && !analyzeMutation.isSuccess && (
+          <div className="analysis-preview">
+            <div className={`health-badge ${previewData.is_urgent ? 'danger' : previewData.health_score < 7 ? 'warning' : ''}`}>
+              Health Score: {previewData.health_score}/10
+            </div>
+            <h4>AI Summary</h4>
+            <p>{previewData.summary}</p>
+            {previewData.issues.length > 0 && previewData.issues[0] !== 'none' && (
+              <div className="detected-issues">
+                <small>Detected: {previewData.issues.join(', ')}</small>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="panel">

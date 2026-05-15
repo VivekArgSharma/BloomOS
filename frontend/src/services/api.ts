@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import type { CatalogItem, ChatResponse, DailyLog, DailyPlan, Garden, GardenAnalytics, Plant, PlantAnalytics, PlantDetails, Weather } from '../types'
+import type { CatalogItem, ChatResponse, CompatibilityCheck, DailyLog, DailyPlan, Garden, GardenAnalytics, Plant, PlantAnalytics, PlantDetails, UserBadges, UserStats, Weather } from '../types'
 import { supabase } from './supabase'
 
 const api = axios.create({
@@ -108,5 +108,37 @@ export async function askPlantChat(plantId: string, question: string) {
 
 export async function fetchWeather(city?: string) {
   const { data } = await api.get<Weather>('weather', { params: city ? { city } : {} })
+  return data
+}
+
+export async function fetchUserBadges() {
+  const { data } = await api.get<UserBadges>('badges')
+  return data
+}
+
+export async function fetchUserStats() {
+  const { data } = await api.get<UserStats>('stats')
+  return data
+}
+
+export async function fetchPlantCompatibility(plantId: string, locationType: string) {
+  const { data } = await api.get<CompatibilityCheck>(`plants/${plantId}/compatibility`, {
+    params: { location_type: locationType },
+  })
+  return data
+}
+
+export type AnalysisPreview = {
+  health_score: number
+  summary: string
+  issues: string[]
+  is_urgent: boolean
+}
+
+export async function previewPlantAnalysis(plantId: string, file: File, observations: string) {
+  const form = new FormData()
+  form.append('image', file)
+  if (observations) form.append('observations', observations)
+  const { data } = await api.post<AnalysisPreview>(`plants/${plantId}/preview-analysis`, form)
   return data
 }

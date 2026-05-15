@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 
 import { AuthRequired } from '../components/AuthRequired'
+import { CompatibilityChecker } from '../components/CompatibilityChecker'
+import { FileUploadButton } from '../components/FileUploadButton'
 import { IssueBreakdown } from '../components/IssueBreakdown'
 import { TrendChart } from '../components/TrendChart'
 import { useAuth } from '../context/AuthContext'
@@ -83,6 +85,8 @@ export function GardenPage() {
 
       {analytics ? <TrendChart title="Garden health curve" subtitle="Last 7 check-ins" points={analytics.health_history} max={10} /> : null}
 
+      {garden ? <CompatibilityChecker gardenId={gardenId} locationType={garden.location_type} /> : null}
+
       <section className="panel">
         <div className="section-head">
           <div>
@@ -92,7 +96,11 @@ export function GardenPage() {
         </div>
         <div className="form-panel">
           <input value={searchHint} onChange={(event) => setSearchHint(event.target.value)} placeholder="Optional hint, e.g. basil or monstera" />
-          <input type="file" accept="image/*" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
+          <FileUploadButton
+            onFileSelect={setSelectedFile}
+            selectedFile={selectedFile}
+            label="Upload plant photo"
+          />
           <button onClick={() => identifyMutation.mutate({ file: selectedFile, searchHint })} disabled={!selectedFile && !searchHint}>
             {identifyMutation.isPending ? 'Identifying...' : 'Identify plant'}
           </button>

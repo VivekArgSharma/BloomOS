@@ -17,11 +17,21 @@ class Settings(BaseSettings):
     supabase_anon_key: str = Field(default="", alias="SUPABASE_ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
 
-    # OpenRouter LLM settings
+    # OpenRouter LLM settings (for care plan generation)
     openrouter_api_key: str = Field(default="", alias="OPENROUTER_API_KEY")
     openrouter_model: str = Field(default="nvidia/nemotron-nano-8b-v1:free", alias="OPENROUTER_MODEL")
     openrouter_timeout: int = Field(default=60, alias="OPENROUTER_TIMEOUT")
+    
+    # Weather API
     openweathermap_api_key: str = Field(default="", alias="OPENWEATHERMAP_API_KEY")
+    
+    # PlantNet API (species identification)
+    plantnet_api_key: str = Field(default="", alias="PLANTNET_API_KEY")
+    
+    # Plant.id API (health & disease detection)
+    plantid_api_key: str = Field(default="", alias="PLANTID_API_KEY")
+    
+    # Redis (optional)
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
     supabase_storage_bucket: str = Field(default="plant-photos", alias="SUPABASE_STORAGE_BUCKET")
     max_upload_bytes: int = Field(default=6_000_000, alias="MAX_UPLOAD_BYTES")

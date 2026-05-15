@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
 import { AuthRequired } from '../components/AuthRequired'
+import { BadgesDisplay } from '../components/BadgesDisplay'
 import { CatalogPreview } from '../components/CatalogPreview'
 import { CreateGardenForm } from '../components/CreateGardenForm'
 import { useAuth } from '../context/AuthContext'
-import { createGarden, fetchCatalog, fetchGardens, fetchWeather } from '../services/api'
+import { createGarden, fetchCatalog, fetchGardens, fetchUserStats, fetchWeather } from '../services/api'
 
 export function DashboardPage() {
   const { user, loading } = useAuth()
@@ -13,6 +14,7 @@ export function DashboardPage() {
   const gardensQuery = useQuery({ queryKey: ['gardens'], queryFn: fetchGardens, enabled: Boolean(user) })
   const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog, enabled: Boolean(user) })
   const weatherQuery = useQuery({ queryKey: ['weather', 'dashboard'], queryFn: () => fetchWeather('Bengaluru'), enabled: Boolean(user) })
+  const statsQuery = useQuery({ queryKey: ['user-stats'], queryFn: fetchUserStats, enabled: Boolean(user) })
 
   const createMutation = useMutation({
     mutationFn: createGarden,
@@ -56,6 +58,12 @@ export function DashboardPage() {
             <span>Avg health</span>
           </article>
         </div>
+        {statsQuery.data && (
+          <div className="stats-mini">
+            <span>Photos: {statsQuery.data.total_photos_uploaded}</span>
+            <span>Thriving: {statsQuery.data.plants_at_health_90_plus}</span>
+          </div>
+        )}
       </section>
 
       {/* Create Garden */}
@@ -87,6 +95,9 @@ export function DashboardPage() {
           ))}
         </div>
       </section>
+
+      {/* Badges */}
+      <BadgesDisplay />
 
       {/* Catalog Preview */}
       <CatalogPreview items={catalogQuery.data ?? []} />
