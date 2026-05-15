@@ -35,22 +35,22 @@ export function DashboardPage() {
 
   return (
     <div className="grid-layout dashboard-layout">
-      {/* Overview Spotlight */}
-      <section className="panel spotlight">
+      <section className="panel spotlight dashboard-spotlight page-panel-full">
         <div className="section-head">
           <div>
             <p className="eyebrow">Overview</p>
-            <h2>Your living system at a glance</h2>
+            <h2>Define the future of your plant system</h2>
           </div>
           <span className="pill">{weatherQuery.data?.summary ?? 'Loading weather'}</span>
         </div>
         <div className="spotlight-content">
           <div className="panel-intro">
-            <p className="muted">A grounded overview of every zone, every plant, and the care signals shaping what needs attention next.</p>
+            <p className="section-copy">The dashboard should not feel like a stack of widgets. This page keeps only the highest-value signals up front: space count, plant load, current health, and immediate environmental context.</p>
             {statsQuery.data && (
               <div className="stats-mini">
                 <span>Photos: {statsQuery.data.total_photos_uploaded}</span>
                 <span>Thriving: {statsQuery.data.plants_at_health_90_plus}</span>
+                <span>Tasks completed: {statsQuery.data.total_tasks_completed}</span>
               </div>
             )}
           </div>
@@ -65,24 +65,20 @@ export function DashboardPage() {
             </article>
             <article>
               <strong>{avgHealth}</strong>
-              <span>Avg health</span>
+              <span>Avg health score</span>
             </article>
           </div>
         </div>
       </section>
 
-      {/* Create Garden */}
-      <CreateGardenForm onSubmit={async (payload) => createMutation.mutateAsync(payload)} />
-
-      {/* Gardens List */}
-      <section className="panel">
+      <section className="panel dashboard-gardens">
         <div className="section-head">
           <div>
             <p className="eyebrow">Gardens</p>
             <h3>Multi-zone care management</h3>
           </div>
         </div>
-        <p className="section-copy">Keep each growing environment separate so analytics, residents, and care plans stay specific to the way that space actually behaves.</p>
+        <p className="section-copy">Keep the zone list visible and prominent; it is the fastest way into the rest of the product. Everything lower on the page supports this action.</p>
         <div className="stack-list">
           {gardens.length === 0 ? (
             <p className="muted">No gardens yet. Create one above to begin your plant care journey.</p>
@@ -102,10 +98,10 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {/* Badges */}
+      <CreateGardenForm onSubmit={async (payload) => createMutation.mutateAsync(payload)} />
+
       <BadgesDisplay />
 
-      {/* Catalog Preview */}
       <CatalogPreview items={catalogQuery.data ?? []} />
     </div>
   )

@@ -36,7 +36,7 @@ export function CommunityProfilePage() {
 
   return (
     <div className="grid-layout community-layout">
-      <section className="panel spotlight page-panel-full">
+      <section className="panel spotlight page-panel-full profile-hero">
         <div className="spotlight-content">
           <div className="panel-intro">
             <p className="eyebrow">Community Profile</p>

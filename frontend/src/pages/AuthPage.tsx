@@ -38,13 +38,13 @@ export function AuthPage() {
 
   return (
     <section className="grid-layout single">
-      <div className="panel auth-card">
+      <div className="panel auth-card page-panel-full">
         <div className="panel-intro split">
           <div>
             <p className="eyebrow">Authentication</p>
             <h2>{user ? 'You are connected.' : 'Sign in to use the live PlantIQ backend.'}</h2>
           </div>
-          <p className="section-copy">{user ? `Signed in as ${user.email}` : 'Supabase auth is used for gardens, plants, uploads, chat, and analytics ownership.'}</p>
+          <p className="section-copy">{user ? `Signed in as ${user.email}` : 'Supabase auth remains the ownership layer across gardens, plants, uploads, community posting, likes, and comments.'}</p>
         </div>
         {!user ? (
           <>

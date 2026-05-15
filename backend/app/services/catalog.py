@@ -28,7 +28,8 @@ class CatalogService:
         self, 
         query_hint: str, 
         image_bytes: bytes | None = None, 
-        mime_type: str | None = None
+        mime_type: str | None = None,
+        filename: str | None = None,
     ) -> PlantIdentificationResponse:
         # First try catalog search by hint
         match = self.store.search_catalog(query_hint) if query_hint else None
@@ -52,7 +53,11 @@ class CatalogService:
 
         # Use PlantNet for identification
         if self.plantnet.enabled:
-            plantnet_result = self.plantnet.identify(image_bytes)
+            plantnet_result = self.plantnet.identify(
+                image_bytes,
+                filename=(filename or "plant.jpg"),
+                mime_type=(mime_type or "image/jpeg"),
+            )
             if plantnet_result:
                 # Try to find a match in our catalog
                 common_name = plantnet_result.get("common_name", "")

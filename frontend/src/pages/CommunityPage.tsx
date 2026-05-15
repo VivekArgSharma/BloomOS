@@ -138,12 +138,12 @@ export function CommunityPage() {
 
   return (
     <div className="grid-layout community-layout">
-      <section className="panel spotlight community-hero">
+      <section className="panel spotlight community-hero page-panel-full">
         <div className="spotlight-content">
           <div className="panel-intro">
             <p className="eyebrow">Community</p>
             <h2>Share what your plants are doing right now</h2>
-            <p className="section-copy">Post a plant image link, write a short update, and let other growers react, comment, and compare care decisions across similar plants.</p>
+            <p className="section-copy">This page keeps the social feature set, but strips away the utilitarian feel. Composer, feed, profile identity, and conversation now behave like one editorial surface.</p>
           </div>
           <div className="metric-row compact community-metrics">
             <article><strong>{posts.length}</strong><span>Loaded posts</span></article>

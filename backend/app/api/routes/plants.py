@@ -49,7 +49,12 @@ async def identify_plant(
     hint = search_hint or filename
     gemini = GeminiService(settings)
     plantnet = PlantNetService(settings)
-    return CatalogService(store, gemini, plantnet).identify(hint, image_bytes=image_bytes, mime_type=mime_type)
+    return CatalogService(store, gemini, plantnet).identify(
+        hint,
+        image_bytes=image_bytes,
+        mime_type=mime_type,
+        filename=filename,
+    )
 
 
 @router.post("/plants", response_model=Plant, status_code=201)

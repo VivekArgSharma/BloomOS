@@ -61,12 +61,12 @@ export function GardenPage() {
 
   return (
     <div className="grid-layout garden-layout">
-      <section className="panel spotlight">
+      <section className="panel spotlight garden-hero page-panel-full">
         <div className="spotlight-content">
           <div className="panel-intro">
             <p className="eyebrow">Garden View</p>
             <h2>{garden?.name ?? 'Garden'}</h2>
-            <p className="muted">{garden?.location_type} conditions with both instant catalog add and real image-based onboarding.</p>
+            <p className="section-copy">This page keeps all garden actions intact, but groups them into a dossier: environmental identity first, then compatibility, resident performance, and onboarding.</p>
           </div>
           {analytics ? (
             <div className="metric-row compact analytics-metrics">
@@ -180,7 +180,7 @@ export function GardenPage() {
 
       {analytics ? <IssueBreakdown items={analytics.issue_breakdown} /> : null}
 
-      <section className="panel">
+      <section className="panel garden-residents">
         <div className="section-head">
           <div>
             <p className="eyebrow">Plants</p>
@@ -199,7 +199,7 @@ export function GardenPage() {
         </div>
       </section>
 
-      <section className="panel">
+      <section className="panel garden-quick-add">
         <div className="section-head">
           <div>
             <p className="eyebrow">Quick Add</p>

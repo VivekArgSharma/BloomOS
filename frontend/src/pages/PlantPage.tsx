@@ -93,12 +93,12 @@ export function PlantPage() {
 
   return (
     <div className="grid-layout plant-layout">
-      <section className="panel spotlight">
+      <section className="panel spotlight plant-hero page-panel-full">
         <div className="spotlight-content">
           <div className="panel-intro">
             <p className="eyebrow">Plant Details</p>
             <h2>{plant.common_name}</h2>
-            <p className="muted">{plant.species_name}</p>
+            <p className="section-copy">{plant.species_name} - a single specimen profile that keeps the important signals visible while moving utility flows lower in the page.</p>
           </div>
           <div className="metric-row compact">
             <article>
@@ -118,7 +118,7 @@ export function PlantPage() {
       </section>
 
       {analytics ? (
-        <section className="panel analytics-panel">
+        <section className="panel analytics-panel page-panel-full">
           <div className="section-head">
             <div>
               <p className="eyebrow">Plant Analytics</p>

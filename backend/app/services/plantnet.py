@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 from typing import Any
 
 import httpx
@@ -19,7 +18,12 @@ class PlantNetService:
     def enabled(self) -> bool:
         return bool(self.api_key)
     
-    def identify(self, image_bytes: bytes, filename: str = "plant.jpg") -> dict[str, Any] | None:
+    def identify(
+        self,
+        image_bytes: bytes,
+        filename: str = "plant.jpg",
+        mime_type: str = "image/jpeg",
+    ) -> dict[str, Any] | None:
         """
         Identify plant species from an image using PlantNet API.
         Returns species information or None if not available.
@@ -28,24 +32,21 @@ class PlantNetService:
             return None
         
         url = f"{self.BASE_URL}/identify/all"
-        
-        # Convert image to base64
-        image_b64 = base64.b64encode(image_bytes).decode('utf-8')
-        
-        headers = {
-            "Content-Type": "application/json",
+        params = {
+            "api-key": self.api_key,
+            "lang": "en",
+            "include-related-images": "false",
+            "no-reject": "true",
         }
-        
-        payload = {
-            "api_key": self.api_key,
-            "images": [image_b64],
-            "latitude": 0,
-            "longitude": 0,
-            "preferedIdentifications": [],
+        files = {
+            "images": (filename, image_bytes, mime_type),
+        }
+        data = {
+            "organs": "auto",
         }
         
         try:
-            resp = httpx.post(url, json=payload, headers=headers, timeout=self.timeout)
+            resp = httpx.post(url, params=params, data=data, files=files, timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
             return self._parse_results(data)

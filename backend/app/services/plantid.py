@@ -55,7 +55,13 @@ class PlantIdService:
             "longitude": 0,
             "similar_images": False,
             "health": "all",
-            "disease_details": True,
+            "disease_details": [
+                "description",
+                "common_names",
+                "classification",
+                "treatment",
+                "cause",
+            ],
         }
         
         try:
