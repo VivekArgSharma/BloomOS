@@ -143,7 +143,7 @@ export function CommunityPage() {
           <div className="panel-intro">
             <p className="eyebrow">Community</p>
             <h2>Share what your plants are doing right now</h2>
-            <p className="section-copy">This page keeps the social feature set, but strips away the utilitarian feel. Composer, feed, profile identity, and conversation now behave like one editorial surface.</p>
+            <p className="section-copy">Post updates, images, comments, and likes in one clean feed.</p>
           </div>
           <div className="metric-row compact community-metrics">
             <article><strong>{posts.length}</strong><span>Loaded posts</span></article>
@@ -157,7 +157,7 @@ export function CommunityPage() {
         <div className="section-head"><div><p className="eyebrow">Create Post</p><h3>Share a plant update</h3></div></div>
         <div className="panel-content-split">
           <div className="panel-intro">
-            <p className="section-copy">Use an external image URL instead of file uploads. Public HTTPS image links only.</p>
+            <p className="section-copy">Paste a public HTTPS image link and publish.</p>
             <Link to={profileQuery.data ? `/community/profile/${profileQuery.data.username}` : '/community'} className="community-profile-mini community-profile-link">
               <div className="community-avatar">{(profileQuery.data?.display_name ?? user.email ?? 'P').slice(0, 1).toUpperCase()}</div>
               <div>
@@ -193,6 +193,7 @@ export function CommunityPage() {
 
       <section className="panel community-feed page-panel-full">
         <div className="section-head"><div><p className="eyebrow">Community Feed</p><h3>Latest plant updates</h3></div></div>
+        <p className="section-copy community-feed-intro">A quieter stream for progress shots, recovery notes, and small wins from other growers.</p>
         <div className="community-feed-list">
           {posts.length === 0 ? <p className="muted">No community posts yet. Be the first person to share one.</p> : null}
           {posts.map((post) => {

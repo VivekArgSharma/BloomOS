@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloomOS — Your plant is talking.</title>
+  <meta name="description" content="BloomOS — Your plan is talking. We help you listen. An AI-powered plant intelligence operating system.">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    /* === Reset === */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* === Video background === */
+    #bg-video {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; z-index: 0;
+      filter: blur(4px); transform: scale(1.02);
+    }
+
+    /* === White overlay === */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.58);
+      z-index: 1;
+    }
+
+    /* === Page shell === */
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      background: #f8f8f6;
+      color: #0d0d0d;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* === All content above video === */
+    nav, main, footer { position: relative; z-index: 10; }
+
+    /* === Nav === */
+    nav {
+      display: flex;
+      align-items: center;
+      padding: 28px 56px;
+    }
+
+    .wordmark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: #0d0d0d;
+      letter-spacing: -0.02em;
+    }
+
+    .wordmark em {
+      font-style: italic;
+      color: #5a8a6a;
+    }
+
+    /* === Hero === */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 48px;
+      min-height: calc(100vh - 120px);
+    }
+
+    .hero-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 68px;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      color: #0d0d0d;
+      margin-bottom: 12px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: #5a8a6a;
+    }
+
+    .tagline {
+      font-family: 'DM Serif Display', serif;
+      font-size: 17px;
+      font-style: italic;
+      color: rgba(13,13,13,0.5);
+      margin-bottom: 48px;
+    }
+
+    /* === CTA Button === */
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #0d0d0d;
+      color: #ffffff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      padding: 14px 32px;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.2s ease;
+      text-decoration: none;
+    }
+
+    .cta-btn:hover {
+      background: #1a2a20;
+      transform: translateY(-1px);
+    }
+
+    .cta-btn:active {
+      transform: translateY(0);
+    }
+
+    /* === Footer === */
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 56px 40px;
+      border-top: 0.5px solid rgba(13,13,13,0.07);
+    }
+
+    .footer-mark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 12px;
+      color: rgba(13,13,13,0.25);
+    }
+
+    .footer-mark em { font-style: italic; }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(13,13,13,0.35);
+    }
+
+    .status-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #5a8a6a;
+    }
+
+    /* === Mobile (375px) === */
+    @media (max-width: 640px) {
+      nav {
+        padding: 20px 24px;
+      }
+
+      main {
+        padding: 0 24px;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+
+      .tagline {
+        font-size: 15px;
+        margin-bottom: 36px;
+      }
+
+      footer {
+        padding: 20px 24px 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background video (blurred) -->
+  <video autoplay muted loop playsinline id="bg-video">
+    <source src="bg-video.mp4" type="video/mp4">
+  </video>
+
+  <!-- White wash overlay -->
+  <div class="overlay"></div>
+
+  <!-- Nav: wordmark only -->
+  <nav>
+    <div class="wordmark">Bloom<em>OS</em></div>
+  </nav>
+
+  <!-- Hero: full viewport, centered -->
+  <main>
+    <div class="hero-inner">
+      <h1>Your plant is<br><em>talking.</em></h1>
+      <p class="tagline">We help you listen.</p>
+      <a href="http://localhost:5173" class="cta-btn">
+        Get started
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="8" x2="13" y2="8"/>
+          <polyline points="9,4 13,8 9,12"/>
+        </svg>
+      </a>
+    </div>
+  </main>
+
+  <!-- Footer: one line -->
+  <footer>
+    <div class="footer-mark">Bloom<em>OS</em> · 2026</div>
+    <div class="status">
+      <div class="status-dot"></div>
+      All systems calm
+    </div>
+  </footer>
+
+</body>
+</html>

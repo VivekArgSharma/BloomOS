@@ -8,10 +8,11 @@ import { CommunityProfilePage } from './pages/CommunityProfilePage'
 import { useAuth } from './context/AuthContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { GardenPage } from './pages/GardenPage'
+import { LandingPage } from './pages/LandingPage'
 import { PlantPage } from './pages/PlantPage'
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/community', label: 'Community', icon: Users },
   { to: '/auth', label: 'Account', icon: Flower2 },
 ]
@@ -51,16 +52,18 @@ function Shell({ children }: { children: ReactNode }) {
                 <span>interface.</span>
               </h1>
               <p className="hero-summary">
-                PlantIQ turns gardens, plant diaries, image analysis, task planning, and community sharing into one sleek ecosystem that feels alive, intelligent, and deeply considered.
+                Gardens, analytics, diaries, and community in one sleek system.
               </p>
               <div className="hero-actions">
-                <Link to="/" className="button-link hero-action">Open workspace</Link>
+                <Link to="/dashboard" className="button-link hero-action">Open workspace</Link>
                 <Link to="/community" className="ghost-button hero-action">Explore community</Link>
               </div>
             </div>
 
             <div className="hero-mosaic">
               <div className="mosaic-card mosaic-large">
+                <div className="botanical-orb orb-one" aria-hidden="true" />
+                <div className="botanical-orb orb-two" aria-hidden="true" />
                 <span className="mosaic-eyebrow">Daily environment</span>
                 <strong>Eco visual studio</strong>
                 <p>Health analysis, adaptive planning, and context-aware care live inside a darker, richer system.</p>
@@ -80,6 +83,11 @@ function Shell({ children }: { children: ReactNode }) {
                 <p>{user ? 'Authenticated and ready for analysis, journaling, and community posting.' : 'Sign in to persist your care system.'}</p>
               </div>
             </div>
+          </div>
+          <div className="hero-rail" aria-hidden="true">
+            <span />
+            <span />
+            <span />
           </div>
           <div className="hero-brandmark" aria-hidden="true">PlantIQ</div>
         </header>
@@ -109,16 +117,24 @@ function Shell({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
-    <Shell>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/community" element={<CommunityPage />} />
-        <Route path="/community/profile/:username" element={<CommunityProfilePage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/garden/:gardenId" element={<GardenPage />} />
-        <Route path="/plant/:plantId" element={<PlantPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Shell>
+    <Routes>
+      {/* Landing page — no Shell wrapper */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* Main app — wrapped in Shell */}
+      <Route path="*" element={
+        <Shell>
+          <Routes>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/profile/:username" element={<CommunityProfilePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/garden/:gardenId" element={<GardenPage />} />
+            <Route path="/plant/:plantId" element={<PlantPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Shell>
+      } />
+    </Routes>
   )
 }

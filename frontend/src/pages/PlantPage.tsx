@@ -98,7 +98,7 @@ export function PlantPage() {
           <div className="panel-intro">
             <p className="eyebrow">Plant Details</p>
             <h2>{plant.common_name}</h2>
-            <p className="section-copy">{plant.species_name} - a single specimen profile that keeps the important signals visible while moving utility flows lower in the page.</p>
+            <p className="section-copy">{plant.species_name} - health, tasks, analysis, and diary for one plant.</p>
           </div>
           <div className="metric-row compact">
             <article>
@@ -143,11 +143,13 @@ export function PlantPage() {
         </section>
       ) : null}
 
-      {analytics ? <TrendChart title="Health trend" subtitle={`${analytics.health_delta >= 0 ? '+' : ''}${analytics.health_delta} change this week`} points={analytics.health_history} max={10} /> : null}
+      <div className="plant-analytics-stack page-panel-full">
+        {analytics ? <TrendChart title="Health trend" subtitle={`${analytics.health_delta >= 0 ? '+' : ''}${analytics.health_delta} change this week`} points={analytics.health_history} max={10} /> : null}
 
-      {analytics ? <CompletionBars points={analytics.completion_history} /> : null}
+        {analytics ? <CompletionBars points={analytics.completion_history} /> : null}
 
-      {analytics ? <IssueBreakdown items={analytics.issue_breakdown} /> : null}
+        {analytics ? <IssueBreakdown items={analytics.issue_breakdown} /> : null}
+      </div>
 
       {plan ? <TaskChecklist tasks={plan.tasks} onComplete={async (taskId) => taskMutation.mutateAsync(taskId)} /> : null}
 
@@ -160,8 +162,7 @@ export function PlantPage() {
         </div>
         <div className="panel-content-split">
           <div className="panel-intro">
-            <p className="section-copy">A single check-in photo can update health history, surface emerging issues, and create a more complete diary entry for this plant.</p>
-            <p className="section-copy">Use the preview first when you want a quick read before committing the analysis to the timeline.</p>
+            <p className="section-copy">Preview the photo analysis first, then save it to the diary.</p>
           </div>
           <div className="form-panel">
             <FileUploadButton
@@ -233,7 +234,7 @@ export function PlantPage() {
             <h3>Recent timeline</h3>
           </div>
         </div>
-        <p className="section-copy">Each photo, summary, and recommendation becomes part of a visible care record you can review over time.</p>
+        <p className="section-copy">A running visual record of this plant.</p>
         <div className="timeline-list">
           {logs.length === 0 ? <p className="muted">No logs yet. Upload a photo to start the diary.</p> : null}
           {logs.map((log) => (

@@ -66,7 +66,7 @@ export function GardenPage() {
           <div className="panel-intro">
             <p className="eyebrow">Garden View</p>
             <h2>{garden?.name ?? 'Garden'}</h2>
-            <p className="section-copy">This page keeps all garden actions intact, but groups them into a dossier: environmental identity first, then compatibility, resident performance, and onboarding.</p>
+            <p className="section-copy">Residents, analytics, compatibility, and quick plant onboarding.</p>
           </div>
           {analytics ? (
             <div className="metric-row compact analytics-metrics">
@@ -87,9 +87,11 @@ export function GardenPage() {
         </div>
       </section>
 
-      {analytics ? <TrendChart title="Garden health curve" subtitle="Last 7 check-ins" points={analytics.health_history} max={10} /> : null}
+      <div className="garden-analytics-stack page-panel-full">
+        {analytics ? <TrendChart title="Garden health curve" subtitle="Last 7 check-ins" points={analytics.health_history} max={10} /> : null}
 
-      {garden ? <CompatibilityChecker gardenId={gardenId} locationType={garden.location_type} /> : null}
+        {garden ? <CompatibilityChecker gardenId={gardenId} locationType={garden.location_type} /> : null}
+      </div>
 
       <section className="panel page-panel-full">
         <div className="section-head">
@@ -100,8 +102,7 @@ export function GardenPage() {
         </div>
         <div className="panel-content-split">
           <div className="panel-intro">
-            <p className="section-copy">Use one real plant photo to identify likely matches, then turn the result into a resident with a care profile already attached.</p>
-            <p className="section-copy">If the image is unclear, add a quick hint to steer the model toward the right family.</p>
+            <p className="section-copy">Upload a plant photo to identify it, or use quick add below if you already know the plant.</p>
           </div>
           <div className="form-panel">
             <div className="field-group">
@@ -149,7 +150,7 @@ export function GardenPage() {
               <h3>Plant-by-plant performance</h3>
             </div>
           </div>
-          <p className="section-copy">Review the entire garden as a set of individuals so the next intervention is based on the weakest signal, not the average.</p>
+          <p className="section-copy">See which plants need attention first.</p>
           <div className="stack-list">
             {analytics.plant_snapshots.map((item) => (
               <div key={item.plant_id} className="score-row-card">
@@ -187,7 +188,7 @@ export function GardenPage() {
             <h3>Current residents</h3>
           </div>
         </div>
-        <p className="section-copy">Open any resident to inspect its diary, health trend, recovery mode, and daily care sequence in more detail.</p>
+        <p className="section-copy">Open a plant for its diary, health trend, tasks, and photo analysis.</p>
         <div className="plant-grid">
           {(plantsQuery.data ?? []).map((plant) => (
             <Link key={plant.id} className="plant-card" to={`/plant/${plant.id}`}>
@@ -203,9 +204,10 @@ export function GardenPage() {
         <div className="section-head">
           <div>
             <p className="eyebrow">Quick Add</p>
-            <h3>Seed from the preloaded catalog</h3>
+            <h3>Add from the plant catalog</h3>
           </div>
         </div>
+        <p className="section-copy">Skip photo upload and choose from the built-in plant list.</p>
         <div className="catalog-grid">
           {catalog.slice(0, 8).map((item) => (
             <button

@@ -3,16 +3,14 @@ import { Link } from 'react-router-dom'
 
 import { AuthRequired } from '../components/AuthRequired'
 import { BadgesDisplay } from '../components/BadgesDisplay'
-import { CatalogPreview } from '../components/CatalogPreview'
 import { CreateGardenForm } from '../components/CreateGardenForm'
 import { useAuth } from '../context/AuthContext'
-import { createGarden, fetchCatalog, fetchGardens, fetchUserStats, fetchWeather } from '../services/api'
+import { createGarden, fetchGardens, fetchUserStats, fetchWeather } from '../services/api'
 
 export function DashboardPage() {
   const { user, loading } = useAuth()
   const queryClient = useQueryClient()
   const gardensQuery = useQuery({ queryKey: ['gardens'], queryFn: fetchGardens, enabled: Boolean(user) })
-  const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog, enabled: Boolean(user) })
   const weatherQuery = useQuery({ queryKey: ['weather', 'dashboard'], queryFn: () => fetchWeather('Bengaluru'), enabled: Boolean(user) })
   const statsQuery = useQuery({ queryKey: ['user-stats'], queryFn: fetchUserStats, enabled: Boolean(user) })
 
@@ -45,7 +43,7 @@ export function DashboardPage() {
         </div>
         <div className="spotlight-content">
           <div className="panel-intro">
-            <p className="section-copy">The dashboard should not feel like a stack of widgets. This page keeps only the highest-value signals up front: space count, plant load, current health, and immediate environmental context.</p>
+            <p className="section-copy">Your gardens, plant count, health, and weather in one view.</p>
             {statsQuery.data && (
               <div className="stats-mini">
                 <span>Photos: {statsQuery.data.total_photos_uploaded}</span>
@@ -78,7 +76,7 @@ export function DashboardPage() {
             <h3>Multi-zone care management</h3>
           </div>
         </div>
-        <p className="section-copy">Keep the zone list visible and prominent; it is the fastest way into the rest of the product. Everything lower on the page supports this action.</p>
+        <p className="section-copy">Open any garden to manage plants, analytics, and quick-add.</p>
         <div className="stack-list">
           {gardens.length === 0 ? (
             <p className="muted">No gardens yet. Create one above to begin your plant care journey.</p>
@@ -98,11 +96,11 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <CreateGardenForm onSubmit={async (payload) => createMutation.mutateAsync(payload)} />
+      <div className="dashboard-side-stack">
+        <CreateGardenForm onSubmit={async (payload) => createMutation.mutateAsync(payload)} />
 
-      <BadgesDisplay />
-
-      <CatalogPreview items={catalogQuery.data ?? []} />
+        <BadgesDisplay />
+      </div>
     </div>
   )
 }

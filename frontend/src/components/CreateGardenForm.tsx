@@ -24,7 +24,7 @@ export function CreateGardenForm({ onSubmit }: Props) {
           <p className="eyebrow">New Garden</p>
           <h3>Start a new growing zone</h3>
         </div>
-        <p className="muted">Define the environment first so PlantIQ can tailor weather context, plant compatibility, and care pacing to the space.</p>
+        <p className="muted">Create a space, then add plants and analytics around it.</p>
       </div>
       <div className="field-group">
         <label className="field-label" htmlFor="garden-name">Garden name</label>

@@ -36,8 +36,6 @@ class Settings(BaseSettings):
     supabase_storage_bucket: str = Field(default="plant-photos", alias="SUPABASE_STORAGE_BUCKET")
     max_upload_bytes: int = Field(default=6_000_000, alias="MAX_UPLOAD_BYTES")
 
-    rag_docs_path: Path = Field(default=Path("./data/rag_docs"), alias="RAG_DOCS_PATH")
-    faiss_index_path: Path = Field(default=Path("./data/faiss_index"), alias="FAISS_INDEX_PATH")
     use_mock_data: bool = Field(default=True, alias="USE_MOCK_DATA")
 
 

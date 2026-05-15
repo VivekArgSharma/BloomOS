@@ -41,7 +41,7 @@ export function CompatibilityChecker({ gardenId, locationType }: Props) {
       </div>
       <div className="panel-content-split">
         <div className="panel-intro">
-          <p className="section-copy">Check how your existing plants align with the current garden conditions before adding more variety or adjusting care routines.</p>
+          <p className="section-copy">Check whether a resident plant suits this garden.</p>
           <div className="plant-select-row">
             <label className="field-label" htmlFor="compatibility-plant">Check compatibility</label>
             <select

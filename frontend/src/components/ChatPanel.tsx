@@ -20,17 +20,17 @@ export function ChatPanel({ onAsk }: Props) {
     <section className="panel page-panel-full" id="chat-anchor">
       <div className="section-head">
         <div>
-          <p className="eyebrow">RAG Chat</p>
+          <p className="eyebrow">BloomIQ Analysis</p>
           <h3>Ask with context</h3>
         </div>
       </div>
-      <p className="section-copy">Ask about watering cadence, symptom patterns, or the latest diary changes and let the answer stay grounded in this plant's own history.</p>
+      <p className="section-copy">Ask about watering, symptoms, or recent diary changes.</p>
       <form className="chat-form" onSubmit={handleSubmit}>
         <div className="field-group">
           <label className="field-label" htmlFor="plant-question">Question</label>
           <textarea id="plant-question" value={question} onChange={(event) => setQuestion(event.target.value)} rows={3} />
         </div>
-        <button type="submit">Ask PlantIQ</button>
+        <button type="submit">Ask BloomIQ</button>
       </form>
       {response ? (
         <div className="chat-response">

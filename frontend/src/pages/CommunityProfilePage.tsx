@@ -42,7 +42,7 @@ export function CommunityProfilePage() {
             <p className="eyebrow">Community Profile</p>
             <h2>{profile?.display_name ?? 'Loading profile...'}</h2>
             <p className="section-copy">@{profile?.username ?? username}</p>
-            <p className="section-copy">{profile?.bio ?? 'No bio added yet.'}</p>
+            <p className="section-copy">{profile?.bio ?? 'No bio yet.'}</p>
           </div>
           <div className="metric-row compact">
             <article><strong>{posts.length}</strong><span>Posts loaded</span></article>
@@ -60,6 +60,7 @@ export function CommunityProfilePage() {
           </div>
           <Link to="/community" className="button-link">Back to feed</Link>
         </div>
+        <p className="section-copy community-feed-intro">An authored archive of plant observations, photos, and care milestones.</p>
         <div className="community-feed-list">
           {posts.length === 0 ? <p className="muted">No posts yet.</p> : null}
           {posts.map((post) => (
