@@ -92,24 +92,28 @@ export function PlantPage() {
   }
 
   return (
-    <div className="grid-layout">
+    <div className="grid-layout plant-layout">
       <section className="panel spotlight">
-        <p className="eyebrow">Plant Details</p>
-        <h2>{plant.common_name}</h2>
-        <p className="muted">{plant.species_name}</p>
-        <div className="metric-row compact">
-          <article>
-            <strong>{plant.current_health_score}/10</strong>
-            <span>Health</span>
-          </article>
-          <article>
-            <strong>{plant.care_profile.water_interval_days}d</strong>
-            <span>Water cycle</span>
-          </article>
-          <article>
-            <strong>{plant.recovery_mode ? 'On' : 'Off'}</strong>
-            <span>Recovery mode</span>
-          </article>
+        <div className="spotlight-content">
+          <div className="panel-intro">
+            <p className="eyebrow">Plant Details</p>
+            <h2>{plant.common_name}</h2>
+            <p className="muted">{plant.species_name}</p>
+          </div>
+          <div className="metric-row compact">
+            <article>
+              <strong>{plant.current_health_score}/10</strong>
+              <span>Health</span>
+            </article>
+            <article>
+              <strong>{plant.care_profile.water_interval_days}d</strong>
+              <span>Water cycle</span>
+            </article>
+            <article>
+              <strong>{plant.recovery_mode ? 'On' : 'Off'}</strong>
+              <span>Recovery mode</span>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -147,45 +151,55 @@ export function PlantPage() {
 
       {plan ? <TaskChecklist tasks={plan.tasks} onComplete={async (taskId) => taskMutation.mutateAsync(taskId)} /> : null}
 
-      <section className="panel">
+      <section className="panel page-panel-full">
         <div className="section-head">
           <div>
             <p className="eyebrow">Photo Analysis</p>
             <h3>Upload today's plant photo</h3>
           </div>
         </div>
-        <div className="form-panel">
-          <FileUploadButton
-            onFileSelect={handleFileSelect}
-            selectedFile={analysisFile}
-            label="Upload plant photo"
-          />
-          <textarea 
-            value={observations} 
-            onChange={(event) => setObservations(event.target.value)} 
-            placeholder="Optional notes: yellow edges, drooping, dry soil, new growth..." 
-            rows={3} 
-          />
-          
-          {analysisFile && (
-            <div className="upload-actions">
-              <button 
-                onClick={() => previewMutation.mutate()} 
-                disabled={isPreviewLoading || previewMutation.isPending}
-                className="secondary"
-              >
-                {isPreviewLoading ? 'Analyzing...' : 'Preview Analysis'}
-              </button>
-              <button 
-                onClick={() => analyzeMutation.mutate()} 
-                disabled={!analysisFile || analyzeMutation.isPending}
-              >
-                {analyzeMutation.isPending ? 'Saving...' : 'Save to Diary'}
-              </button>
+        <div className="panel-content-split">
+          <div className="panel-intro">
+            <p className="section-copy">A single check-in photo can update health history, surface emerging issues, and create a more complete diary entry for this plant.</p>
+            <p className="section-copy">Use the preview first when you want a quick read before committing the analysis to the timeline.</p>
+          </div>
+          <div className="form-panel">
+            <FileUploadButton
+              onFileSelect={handleFileSelect}
+              selectedFile={analysisFile}
+              label="Upload plant photo"
+            />
+            <div className="field-group">
+              <label className="field-label" htmlFor="plant-observations">Observations</label>
+              <textarea 
+                id="plant-observations"
+                value={observations} 
+                onChange={(event) => setObservations(event.target.value)} 
+                placeholder="Optional notes: yellow edges, drooping, dry soil, new growth..." 
+                rows={3} 
+              />
             </div>
-          )}
-          
-          {analyzeMutation.isError ? <p className="status-text error">{(analyzeMutation.error as Error).message}</p> : null}
+
+            {analysisFile && (
+              <div className="upload-actions">
+                <button 
+                  onClick={() => previewMutation.mutate()} 
+                  disabled={isPreviewLoading || previewMutation.isPending}
+                  className="secondary"
+                >
+                  {isPreviewLoading ? 'Analyzing...' : 'Preview Analysis'}
+                </button>
+                <button 
+                  onClick={() => analyzeMutation.mutate()} 
+                  disabled={!analysisFile || analyzeMutation.isPending}
+                >
+                  {analyzeMutation.isPending ? 'Saving...' : 'Save to Diary'}
+                </button>
+              </div>
+            )}
+
+            {analyzeMutation.isError ? <p className="status-text error">{(analyzeMutation.error as Error).message}</p> : null}
+          </div>
         </div>
 
         {/* Analysis Preview */}
@@ -212,13 +226,14 @@ export function PlantPage() {
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel page-panel-full">
         <div className="section-head">
           <div>
             <p className="eyebrow">Plant Diary</p>
             <h3>Recent timeline</h3>
           </div>
         </div>
+        <p className="section-copy">Each photo, summary, and recommendation becomes part of a visible care record you can review over time.</p>
         <div className="timeline-list">
           {logs.length === 0 ? <p className="muted">No logs yet. Upload a photo to start the diary.</p> : null}
           {logs.map((log) => (

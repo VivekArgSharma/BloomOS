@@ -6,9 +6,7 @@ export function AuthRequired({ message }: { message: string }) {
       <p className="eyebrow">Sign In Required</p>
       <h3>Connect your Supabase account</h3>
       <p className="muted">{message}</p>
-      <Link to="/auth">
-        <button type="button">Sign in →</button>
-      </Link>
+      <Link to="/auth" className="button-link">Sign in</Link>
     </section>
   )
 }

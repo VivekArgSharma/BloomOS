@@ -32,50 +32,68 @@ export function CompatibilityChecker({ gardenId, locationType }: Props) {
   }
 
   return (
-    <div className="compatibility-checker">
-      <div className="plant-select-row">
-        <label className="eyebrow">Check Compatibility</label>
-        <select
-          value={selectedPlantId || ''}
-          onChange={(e) => setSelectedPlantId(e.target.value || null)}
-        >
-          <option value="">Select a plant...</option>
-          {plants.map((plant) => (
-            <option key={plant.id} value={plant.id}>
-              {plant.common_name}
-            </option>
-          ))}
-        </select>
+    <section className="panel page-panel-full compatibility-checker">
+      <div className="section-head">
+        <div>
+          <p className="eyebrow">Compatibility</p>
+          <h3>See which plant fits this zone</h3>
+        </div>
       </div>
-
-      {compatibilityQuery.isLoading && <p className="muted">Analyzing...</p>}
-
-      {compatibilityQuery.data && (
-        <div className={`compatibility-card ${compatibilityQuery.data.compatible ? 'compatible' : 'not-compatible'}`}>
-          <div className="compat-header">
-            <strong>
-              {compatibilityQuery.data.compatible ? '✓ Compatible' : '⚠ May Struggle'}
-            </strong>
-            <span>{compatibilityQuery.data.confidence}% confidence</span>
+      <div className="panel-content-split">
+        <div className="panel-intro">
+          <p className="section-copy">Check how your existing plants align with the current garden conditions before adding more variety or adjusting care routines.</p>
+          <div className="plant-select-row">
+            <label className="field-label" htmlFor="compatibility-plant">Check compatibility</label>
+            <select
+              id="compatibility-plant"
+              value={selectedPlantId || ''}
+              onChange={(e) => setSelectedPlantId(e.target.value || null)}
+            >
+              <option value="">Select a plant...</option>
+              {plants.map((plant) => (
+                <option key={plant.id} value={plant.id}>
+                  {plant.common_name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          {compatibilityQuery.data.issues.length > 0 && (
-            <ul className="compat-issues">
-              {compatibilityQuery.data.issues.map((issue, i) => (
-                <li key={i}>{issue}</li>
-              ))}
-            </ul>
-          )}
+        <div>
+          {compatibilityQuery.isLoading && <p className="muted">Analyzing...</p>}
 
-          {compatibilityQuery.data.recommendations.length > 0 && (
-            <div className="compat-recs">
-              {compatibilityQuery.data.recommendations.map((rec, i) => (
-                <p key={i}>{rec}</p>
-              ))}
+          {compatibilityQuery.data ? (
+            <div className={`compatibility-card ${compatibilityQuery.data.compatible ? 'compatible' : 'not-compatible'}`}>
+              <div className="compat-header">
+                <strong>
+                  {compatibilityQuery.data.compatible ? 'Compatible' : 'May struggle'}
+                </strong>
+                <span>{compatibilityQuery.data.confidence}% confidence</span>
+              </div>
+
+              {compatibilityQuery.data.issues.length > 0 && (
+                <ul className="compat-issues">
+                  {compatibilityQuery.data.issues.map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                </ul>
+              )}
+
+              {compatibilityQuery.data.recommendations.length > 0 && (
+                <div className="compat-recs">
+                  {compatibilityQuery.data.recommendations.map((rec, i) => (
+                    <p key={i}>{rec}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="compatibility-empty">
+              <p className="muted">Choose a plant to compare its needs against this garden's location profile.</p>
             </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   )
 }

@@ -6,7 +6,7 @@ type Props = {
 
 export function CompletionBars({ points }: Props) {
   return (
-    <section className="panel analytics-panel">
+    <section className="panel analytics-panel page-panel-full">
       <div className="section-head">
         <div>
           <p className="eyebrow">Consistency</p>

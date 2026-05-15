@@ -8,7 +8,7 @@ export function IssueBreakdown({ items }: Props) {
   const topCount = items[0]?.count ?? 1
 
   return (
-    <section className="panel analytics-panel">
+    <section className="panel analytics-panel page-panel-full">
       <div className="section-head">
         <div>
           <p className="eyebrow">Signals</p>

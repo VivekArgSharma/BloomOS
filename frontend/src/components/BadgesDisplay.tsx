@@ -20,13 +20,14 @@ export function BadgesDisplay() {
   }
 
   return (
-    <section className="panel">
+    <section className="panel page-panel-full">
       <div className="section-head">
         <div>
           <p className="eyebrow">Achievements</p>
           <h3>Your badges ({totalUnlocked}/{totalAvailable})</h3>
         </div>
       </div>
+      <p className="section-copy">Small milestones make the care routine feel tangible, especially when you are building consistency across multiple gardens.</p>
       <div className="badges-grid">
         {badges.map((badge) => (
           <div key={badge.id} className={`badge-card ${badge.unlocked ? 'unlocked' : 'locked'}`}>

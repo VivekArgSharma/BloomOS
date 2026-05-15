@@ -60,82 +60,96 @@ export function GardenPage() {
   }
 
   return (
-    <div className="grid-layout">
+    <div className="grid-layout garden-layout">
       <section className="panel spotlight">
-        <p className="eyebrow">Garden View</p>
-        <h2>{garden?.name ?? 'Garden'}</h2>
-        <p className="muted">{garden?.location_type} conditions with both instant catalog add and real image-based onboarding.</p>
-        {analytics ? (
-          <div className="metric-row compact analytics-metrics">
-            <article>
-              <strong>{analytics.overall_health}</strong>
-              <span>Overall health</span>
-            </article>
-            <article>
-              <strong>{analytics.average_completion_rate}%</strong>
-              <span>Task follow-through</span>
-            </article>
-            <article>
-              <strong>{analytics.plants_in_recovery}</strong>
-              <span>In recovery</span>
-            </article>
+        <div className="spotlight-content">
+          <div className="panel-intro">
+            <p className="eyebrow">Garden View</p>
+            <h2>{garden?.name ?? 'Garden'}</h2>
+            <p className="muted">{garden?.location_type} conditions with both instant catalog add and real image-based onboarding.</p>
           </div>
-        ) : null}
+          {analytics ? (
+            <div className="metric-row compact analytics-metrics">
+              <article>
+                <strong>{analytics.overall_health}</strong>
+                <span>Overall health</span>
+              </article>
+              <article>
+                <strong>{analytics.average_completion_rate}%</strong>
+                <span>Task follow-through</span>
+              </article>
+              <article>
+                <strong>{analytics.plants_in_recovery}</strong>
+                <span>In recovery</span>
+              </article>
+            </div>
+          ) : null}
+        </div>
       </section>
 
       {analytics ? <TrendChart title="Garden health curve" subtitle="Last 7 check-ins" points={analytics.health_history} max={10} /> : null}
 
       {garden ? <CompatibilityChecker gardenId={gardenId} locationType={garden.location_type} /> : null}
 
-      <section className="panel">
+      <section className="panel page-panel-full">
         <div className="section-head">
           <div>
             <p className="eyebrow">Photo Onboarding</p>
             <h3>Identify from a real image</h3>
           </div>
         </div>
-        <div className="form-panel">
-          <input value={searchHint} onChange={(event) => setSearchHint(event.target.value)} placeholder="Optional hint, e.g. basil or monstera" />
-          <FileUploadButton
-            onFileSelect={setSelectedFile}
-            selectedFile={selectedFile}
-            label="Upload plant photo"
-          />
-          <button onClick={() => identifyMutation.mutate({ file: selectedFile, searchHint })} disabled={!selectedFile && !searchHint}>
-            {identifyMutation.isPending ? 'Identifying...' : 'Identify plant'}
-          </button>
-          <p className="status-text">{identifyMessage}</p>
-          {identifiedPlant ? (
-            <div className="identified-card">
-              <strong>{identifiedPlant.common_name}</strong>
-              <p className="muted">{identifiedPlant.species_name}</p>
-              <small>{identifiedPlant.care_profile.light} light - water every {identifiedPlant.care_profile.water_interval_days} days</small>
-              <button
-                onClick={() =>
-                  addPlantMutation.mutate({
-                    garden_id: gardenId,
-                    common_name: identifiedPlant.common_name,
-                    species_name: identifiedPlant.species_name,
-                    source: selectedFile ? 'image' : 'catalog',
-                    care_profile: identifiedPlant.care_profile,
-                  })
-                }
-              >
-                Add identified plant
-              </button>
+        <div className="panel-content-split">
+          <div className="panel-intro">
+            <p className="section-copy">Use one real plant photo to identify likely matches, then turn the result into a resident with a care profile already attached.</p>
+            <p className="section-copy">If the image is unclear, add a quick hint to steer the model toward the right family.</p>
+          </div>
+          <div className="form-panel">
+            <div className="field-group">
+              <label className="field-label" htmlFor="search-hint">Hint</label>
+              <input id="search-hint" value={searchHint} onChange={(event) => setSearchHint(event.target.value)} placeholder="Optional hint, e.g. basil or monstera" />
             </div>
-          ) : null}
+            <FileUploadButton
+              onFileSelect={setSelectedFile}
+              selectedFile={selectedFile}
+              label="Upload plant photo"
+            />
+            <button onClick={() => identifyMutation.mutate({ file: selectedFile, searchHint })} disabled={!selectedFile && !searchHint}>
+              {identifyMutation.isPending ? 'Identifying...' : 'Identify plant'}
+            </button>
+            <p className="status-text">{identifyMessage}</p>
+            {identifiedPlant ? (
+              <div className="identified-card">
+                <strong>{identifiedPlant.common_name}</strong>
+                <p className="muted">{identifiedPlant.species_name}</p>
+                <small>{identifiedPlant.care_profile.light} light - water every {identifiedPlant.care_profile.water_interval_days} days</small>
+                <button
+                  onClick={() =>
+                    addPlantMutation.mutate({
+                      garden_id: gardenId,
+                      common_name: identifiedPlant.common_name,
+                      species_name: identifiedPlant.species_name,
+                      source: selectedFile ? 'image' : 'catalog',
+                      care_profile: identifiedPlant.care_profile,
+                    })
+                  }
+                >
+                  Add identified plant
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </section>
 
       {analytics ? (
-        <section className="panel analytics-panel">
+        <section className="panel analytics-panel page-panel-full">
           <div className="section-head">
             <div>
               <p className="eyebrow">Garden Analytics</p>
               <h3>Plant-by-plant performance</h3>
             </div>
           </div>
+          <p className="section-copy">Review the entire garden as a set of individuals so the next intervention is based on the weakest signal, not the average.</p>
           <div className="stack-list">
             {analytics.plant_snapshots.map((item) => (
               <div key={item.plant_id} className="score-row-card">
@@ -173,6 +187,7 @@ export function GardenPage() {
             <h3>Current residents</h3>
           </div>
         </div>
+        <p className="section-copy">Open any resident to inspect its diary, health trend, recovery mode, and daily care sequence in more detail.</p>
         <div className="plant-grid">
           {(plantsQuery.data ?? []).map((plant) => (
             <Link key={plant.id} className="plant-card" to={`/plant/${plant.id}`}>

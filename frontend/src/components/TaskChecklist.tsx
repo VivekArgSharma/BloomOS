@@ -7,7 +7,7 @@ type Props = {
 
 export function TaskChecklist({ tasks, onComplete }: Props) {
   return (
-    <section className="panel">
+    <section className="panel page-panel-full">
       <div className="section-head">
         <div>
           <p className="eyebrow">Daily Plan</p>

@@ -21,13 +21,22 @@ function buildPath(points: Point[], width: number, height: number, max: number) 
     .join(' ')
 }
 
+function buildAreaPath(points: Point[], width: number, height: number, max: number) {
+  const linePath = buildPath(points, width, height, max)
+  if (!linePath) return ''
+
+  const lastX = points.length === 1 ? width / 2 : width
+  return `${linePath} L ${lastX.toFixed(1)} ${height} L 0 ${height} Z`
+}
+
 export function TrendChart({ title, subtitle, points, max = 10 }: Props) {
   const width = 320
   const height = 120
   const path = buildPath(points, width, height, max)
+  const areaPath = buildAreaPath(points, width, height, max)
 
   return (
-    <section className="panel analytics-panel">
+    <section className="panel analytics-panel page-panel-full">
       <div className="section-head">
         <div>
           <p className="eyebrow">Analytics</p>
@@ -39,17 +48,21 @@ export function TrendChart({ title, subtitle, points, max = 10 }: Props) {
         <p className="muted">No chart data yet.</p>
       ) : (
         <div className="trend-wrap">
-          <svg viewBox={`0 0 ${width} ${height}`} className="trend-svg" preserveAspectRatio="none" aria-hidden="true">
-            {[0.25, 0.5, 0.75, 1].map((fraction) => (
-              <line key={fraction} x1="0" y1={height - height * fraction} x2={width} y2={height - height * fraction} className="trend-grid" />
-            ))}
-            <path d={path} className="trend-path" />
-            {points.map((point, index) => {
-              const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width
-              const y = height - (point.score / max) * height
-              return <circle key={`${point.label}-${index}`} cx={x} cy={y} r="4" className="trend-dot" />
-            })}
-          </svg>
+          <div className="chart-surface">
+            <svg viewBox={`0 0 ${width} ${height}`} className="trend-svg" preserveAspectRatio="none" aria-hidden="true">
+              {[0.25, 0.5, 0.75, 1].map((fraction) => (
+                <line key={fraction} x1="0" y1={height - height * fraction} x2={width} y2={height - height * fraction} className="trend-grid" />
+              ))}
+              <path d={areaPath} className="trend-area" />
+              <path d={path} className="trend-path-shadow" />
+              <path d={path} className="trend-path" />
+              {points.map((point, index) => {
+                const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width
+                const y = height - (point.score / max) * height
+                return <circle key={`${point.label}-${index}`} cx={x} cy={y} r="4" className="trend-dot" />
+              })}
+            </svg>
+          </div>
           <div className="trend-labels">
             {points.map((point) => (
               <div key={point.label}>

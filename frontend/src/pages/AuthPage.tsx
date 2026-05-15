@@ -39,13 +39,23 @@ export function AuthPage() {
   return (
     <section className="grid-layout single">
       <div className="panel auth-card">
-        <p className="eyebrow">Authentication</p>
-        <h2>{user ? 'You are connected.' : 'Sign in to use the live PlantIQ backend.'}</h2>
-        <p className="muted">{user ? `Signed in as ${user.email}` : 'Supabase auth is used for gardens, plants, uploads, chat, and analytics ownership.'}</p>
+        <div className="panel-intro split">
+          <div>
+            <p className="eyebrow">Authentication</p>
+            <h2>{user ? 'You are connected.' : 'Sign in to use the live PlantIQ backend.'}</h2>
+          </div>
+          <p className="section-copy">{user ? `Signed in as ${user.email}` : 'Supabase auth is used for gardens, plants, uploads, chat, and analytics ownership.'}</p>
+        </div>
         {!user ? (
           <>
-            <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
-            <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="Password" />
+            <div className="field-group">
+              <label className="field-label" htmlFor="auth-email">Email</label>
+              <input id="auth-email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="auth-password">Password</label>
+              <input id="auth-password" value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="Password" />
+            </div>
             <div className="inline-fields auth-actions">
               <button onClick={handleSignIn}>Sign in</button>
               <button onClick={handleSignUp}>Create account</button>

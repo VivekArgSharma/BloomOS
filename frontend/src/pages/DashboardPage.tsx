@@ -34,7 +34,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="grid-layout">
+    <div className="grid-layout dashboard-layout">
       {/* Overview Spotlight */}
       <section className="panel spotlight">
         <div className="section-head">
@@ -44,26 +44,31 @@ export function DashboardPage() {
           </div>
           <span className="pill">{weatherQuery.data?.summary ?? 'Loading weather'}</span>
         </div>
-        <div className="metric-row">
-          <article>
-            <strong>{gardens.length}</strong>
-            <span>Gardens</span>
-          </article>
-          <article>
-            <strong>{totalPlants}</strong>
-            <span>Plants</span>
-          </article>
-          <article>
-            <strong>{avgHealth}</strong>
-            <span>Avg health</span>
-          </article>
-        </div>
-        {statsQuery.data && (
-          <div className="stats-mini">
-            <span>Photos: {statsQuery.data.total_photos_uploaded}</span>
-            <span>Thriving: {statsQuery.data.plants_at_health_90_plus}</span>
+        <div className="spotlight-content">
+          <div className="panel-intro">
+            <p className="muted">A grounded overview of every zone, every plant, and the care signals shaping what needs attention next.</p>
+            {statsQuery.data && (
+              <div className="stats-mini">
+                <span>Photos: {statsQuery.data.total_photos_uploaded}</span>
+                <span>Thriving: {statsQuery.data.plants_at_health_90_plus}</span>
+              </div>
+            )}
           </div>
-        )}
+          <div className="metric-row">
+            <article>
+              <strong>{gardens.length}</strong>
+              <span>Gardens</span>
+            </article>
+            <article>
+              <strong>{totalPlants}</strong>
+              <span>Plants</span>
+            </article>
+            <article>
+              <strong>{avgHealth}</strong>
+              <span>Avg health</span>
+            </article>
+          </div>
+        </div>
       </section>
 
       {/* Create Garden */}
@@ -77,6 +82,7 @@ export function DashboardPage() {
             <h3>Multi-zone care management</h3>
           </div>
         </div>
+        <p className="section-copy">Keep each growing environment separate so analytics, residents, and care plans stay specific to the way that space actually behaves.</p>
         <div className="stack-list">
           {gardens.length === 0 ? (
             <p className="muted">No gardens yet. Create one above to begin your plant care journey.</p>
