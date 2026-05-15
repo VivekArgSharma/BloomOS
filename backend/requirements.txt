@@ -5,4 +5,3 @@ python-multipart==0.0.20
 supabase==2.15.1
 google-genai==1.15.0
 httpx==0.28.1
-orjson==3.10.18
