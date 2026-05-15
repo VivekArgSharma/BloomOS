@@ -176,3 +176,51 @@ export type CompatibilityCheck = {
   light_compatibility: Record<string, any>
   humidity_compatibility: Record<string, any>
 }
+
+export type CommunityProfile = {
+  id: string
+  username: string
+  display_name: string
+  avatar_url?: string | null
+  bio?: string | null
+}
+
+export type CommunityPost = {
+  id: string
+  author: CommunityProfile
+  body: string
+  image_url?: string | null
+  like_count: number
+  comment_count: number
+  viewer_has_liked: boolean
+  created_at: string
+  updated_at?: string | null
+  is_owner: boolean
+}
+
+export type CommunityComment = {
+  id: string
+  post_id: string
+  author: CommunityProfile
+  body: string
+  created_at: string
+  updated_at?: string | null
+  is_owner: boolean
+}
+
+export type CommunityFeed = {
+  posts: CommunityPost[]
+  next_offset?: number | null
+}
+
+export type CommunityLikeResponse = {
+  post_id: string
+  like_count: number
+  viewer_has_liked: boolean
+}
+
+export type CommunityProfilePage = {
+  profile: CommunityProfile
+  posts: CommunityPost[]
+  next_offset?: number | null
+}

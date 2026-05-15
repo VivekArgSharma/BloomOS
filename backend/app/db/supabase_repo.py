@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime
+import re
 from typing import Any
 from uuid import UUID
 
@@ -12,6 +13,17 @@ from app.models.schemas import (
     AnalysisResult,
     CareProfile,
     CompletionPoint,
+    CommunityComment,
+    CommunityFeedResponse,
+    CommunityLikeResponse,
+    CommunityPost,
+    CommunityPostCreate,
+    CommunityPostUpdate,
+    CommunityCommentCreate,
+    CommunityCommentUpdate,
+    CommunityProfile,
+    CommunityProfilePage,
+    CommunityProfileUpdate,
     DailyLog,
     DailyPlan,
     Garden,
@@ -347,6 +359,171 @@ class SupabaseRepository:
             recommended_focus=f"Prioritize {needs_attention.common_name} and keep overall completion above {max(80, avg_completion)}%.",
         )
 
+    def get_or_create_community_profile(self, user_id: str, user_email: str | None = None) -> CommunityProfile:
+        existing = self.client.table("profiles").select("*").eq("id", user_id).limit(1).execute().data or []
+        if existing:
+            row = existing[0]
+            updates: dict[str, Any] = {}
+            if not row.get("username"):
+                updates["username"] = self._build_username(user_id, user_email)
+            if not row.get("name"):
+                updates["name"] = self._build_display_name(user_email)
+            if updates:
+                updates["updated_at"] = datetime.utcnow().isoformat()
+                row = self.client.table("profiles").update(updates).eq("id", user_id).execute().data[0]
+            return self._map_community_profile(row)
+
+        payload = {
+            "id": user_id,
+            "name": self._build_display_name(user_email),
+            "username": self._build_username(user_id, user_email),
+            "avatar_url": None,
+            "bio": None,
+            "is_public": True,
+        }
+        row = self.client.table("profiles").insert(payload).execute().data[0]
+        return self._map_community_profile(row)
+
+    def update_community_profile(self, user_id: str, user_email: str | None, payload: CommunityProfileUpdate) -> CommunityProfile:
+        self.get_or_create_community_profile(user_id, user_email)
+        updates = payload.model_dump(exclude_none=True)
+        if "display_name" in updates:
+            updates["name"] = updates.pop("display_name")
+        if "username" in updates:
+            updates["username"] = self._sanitize_username(updates["username"])
+        if not updates:
+            return self.get_or_create_community_profile(user_id, user_email)
+        updates["updated_at"] = datetime.utcnow().isoformat()
+        row = self.client.table("profiles").update(updates).eq("id", user_id).execute().data[0]
+        return self._map_community_profile(row)
+
+    def list_community_feed(self, user_id: str, user_email: str | None = None, limit: int = 20, offset: int = 0) -> CommunityFeedResponse:
+        self.get_or_create_community_profile(user_id, user_email)
+        rows = (
+            self.client.table("community_posts")
+            .select("*")
+            .order("created_at", desc=True)
+            .range(offset, offset + limit - 1)
+            .execute()
+            .data
+            or []
+        )
+        next_offset = offset + limit if len(rows) == limit else None
+        return CommunityFeedResponse(posts=[self._hydrate_community_post(user_id, row) for row in rows], next_offset=next_offset)
+
+    def create_community_post(self, user_id: str, user_email: str | None, payload: CommunityPostCreate) -> CommunityPost:
+        self.get_or_create_community_profile(user_id, user_email)
+        row = (
+            self.client.table("community_posts")
+            .insert({"author_id": user_id, "body": payload.body.strip(), "image_url": payload.image_url})
+            .execute()
+            .data[0]
+        )
+        return self._hydrate_community_post(user_id, row)
+
+    def update_community_post(self, user_id: str, post_id: UUID, payload: CommunityPostUpdate) -> CommunityPost:
+        post = self._get_community_post_row(post_id)
+        if post is None or post["author_id"] != user_id:
+            raise ValueError("Post not found")
+        row = (
+            self.client.table("community_posts")
+            .update({"body": payload.body.strip(), "image_url": payload.image_url, "updated_at": datetime.utcnow().isoformat()})
+            .eq("id", str(post_id))
+            .execute()
+            .data[0]
+        )
+        return self._hydrate_community_post(user_id, row)
+
+    def delete_community_post(self, user_id: str, post_id: UUID) -> None:
+        post = self._get_community_post_row(post_id)
+        if post is None or post["author_id"] != user_id:
+            raise ValueError("Post not found")
+        self.client.table("community_posts").delete().eq("id", str(post_id)).execute()
+
+    def list_community_comments(self, user_id: str, user_email: str | None, post_id: UUID) -> list[CommunityComment]:
+        self.get_or_create_community_profile(user_id, user_email)
+        if self._get_community_post_row(post_id) is None:
+            return []
+        rows = (
+            self.client.table("community_comments")
+            .select("*")
+            .eq("post_id", str(post_id))
+            .order("created_at")
+            .execute()
+            .data
+            or []
+        )
+        return [self._hydrate_community_comment(user_id, row) for row in rows]
+
+    def create_community_comment(self, user_id: str, user_email: str | None, post_id: UUID, payload: CommunityCommentCreate) -> CommunityComment:
+        self.get_or_create_community_profile(user_id, user_email)
+        if self._get_community_post_row(post_id) is None:
+            raise ValueError("Post not found")
+        row = (
+            self.client.table("community_comments")
+            .insert({"post_id": str(post_id), "author_id": user_id, "body": payload.body.strip()})
+            .execute()
+            .data[0]
+        )
+        return self._hydrate_community_comment(user_id, row)
+
+    def update_community_comment(self, user_id: str, comment_id: UUID, payload: CommunityCommentUpdate) -> CommunityComment:
+        rows = self.client.table("community_comments").select("*").eq("id", str(comment_id)).limit(1).execute().data or []
+        if not rows or rows[0]["author_id"] != user_id:
+            raise ValueError("Comment not found")
+        row = (
+            self.client.table("community_comments")
+            .update({"body": payload.body.strip(), "updated_at": datetime.utcnow().isoformat()})
+            .eq("id", str(comment_id))
+            .execute()
+            .data[0]
+        )
+        return self._hydrate_community_comment(user_id, row)
+
+    def delete_community_comment(self, user_id: str, comment_id: UUID) -> None:
+        rows = self.client.table("community_comments").select("*").eq("id", str(comment_id)).limit(1).execute().data or []
+        if not rows or rows[0]["author_id"] != user_id:
+            raise ValueError("Comment not found")
+        self.client.table("community_comments").delete().eq("id", str(comment_id)).execute()
+
+    def toggle_community_like(self, user_id: str, user_email: str | None, post_id: UUID, liked: bool) -> CommunityLikeResponse:
+        self.get_or_create_community_profile(user_id, user_email)
+        if self._get_community_post_row(post_id) is None:
+            raise ValueError("Post not found")
+        if liked:
+            self.client.table("community_post_likes").upsert({"post_id": str(post_id), "user_id": user_id}).execute()
+        else:
+            self.client.table("community_post_likes").delete().eq("post_id", str(post_id)).eq("user_id", user_id).execute()
+        likes = self.client.table("community_post_likes").select("post_id", count="exact").eq("post_id", str(post_id)).execute()
+        return CommunityLikeResponse(
+            post_id=post_id,
+            like_count=likes.count or 0,
+            viewer_has_liked=liked,
+        )
+
+    def get_community_profile_page(self, viewer_user_id: str, username: str, limit: int = 20, offset: int = 0) -> CommunityProfilePage | None:
+        profile_rows = self.client.table("profiles").select("*").ilike("username", username).limit(1).execute().data or []
+        if not profile_rows:
+            return None
+        profile = self._map_community_profile(profile_rows[0])
+        author_id = profile_rows[0]["id"]
+        rows = (
+            self.client.table("community_posts")
+            .select("*")
+            .eq("author_id", author_id)
+            .order("created_at", desc=True)
+            .range(offset, offset + limit - 1)
+            .execute()
+            .data
+            or []
+        )
+        next_offset = offset + limit if len(rows) == limit else None
+        return CommunityProfilePage(
+            profile=profile,
+            posts=[self._hydrate_community_post(viewer_user_id, row) for row in rows],
+            next_offset=next_offset,
+        )
+
     def _get_garden_row(self, user_id: str, garden_id: UUID) -> dict[str, Any] | None:
         data = (
             self.client.table("gardens").select("*").eq("id", str(garden_id)).eq("user_id", user_id).limit(1).execute().data or []
@@ -415,3 +592,61 @@ class SupabaseRepository:
             weather_snapshot=row.get("weather_snapshot") or {},
             generated_by_ai=row.get("generated_by_ai", True),
         )
+
+    def _get_community_post_row(self, post_id: UUID) -> dict[str, Any] | None:
+        rows = self.client.table("community_posts").select("*").eq("id", str(post_id)).limit(1).execute().data or []
+        return rows[0] if rows else None
+
+    def _hydrate_community_post(self, viewer_user_id: str, row: dict[str, Any]) -> CommunityPost:
+        profile_rows = self.client.table("profiles").select("*").eq("id", row["author_id"]).limit(1).execute().data or []
+        like_result = self.client.table("community_post_likes").select("post_id", count="exact").eq("post_id", row["id"]).execute()
+        liked_rows = self.client.table("community_post_likes").select("post_id").eq("post_id", row["id"]).eq("user_id", viewer_user_id).limit(1).execute().data or []
+        comment_result = self.client.table("community_comments").select("post_id", count="exact").eq("post_id", row["id"]).execute()
+        profile = self._map_community_profile(profile_rows[0] if profile_rows else {"id": row["author_id"], "name": "Plant Lover", "username": f"grower-{row['author_id'][:8]}"})
+        return CommunityPost(
+            id=UUID(row["id"]),
+            author=profile,
+            body=row["body"],
+            image_url=row.get("image_url"),
+            like_count=like_result.count or 0,
+            comment_count=comment_result.count or 0,
+            viewer_has_liked=bool(liked_rows),
+            created_at=datetime.fromisoformat(row["created_at"].replace("Z", "+00:00")),
+            is_owner=row["author_id"] == viewer_user_id,
+            updated_at=datetime.fromisoformat(row["updated_at"].replace("Z", "+00:00")) if row.get("updated_at") else None,
+        )
+
+    def _hydrate_community_comment(self, viewer_user_id: str, row: dict[str, Any]) -> CommunityComment:
+        profile_rows = self.client.table("profiles").select("*").eq("id", row["author_id"]).limit(1).execute().data or []
+        profile = self._map_community_profile(profile_rows[0] if profile_rows else {"id": row["author_id"], "name": "Plant Lover", "username": f"grower-{row['author_id'][:8]}"})
+        return CommunityComment(
+            id=UUID(row["id"]),
+            post_id=UUID(row["post_id"]),
+            author=profile,
+            body=row["body"],
+            created_at=datetime.fromisoformat(row["created_at"].replace("Z", "+00:00")),
+            is_owner=row["author_id"] == viewer_user_id,
+            updated_at=datetime.fromisoformat(row["updated_at"].replace("Z", "+00:00")) if row.get("updated_at") else None,
+        )
+
+    def _map_community_profile(self, row: dict[str, Any]) -> CommunityProfile:
+        return CommunityProfile(
+            id=UUID(str(row["id"])),
+            username=row.get("username") or f"grower-{str(row['id'])[:8]}",
+            display_name=row.get("name") or "Plant Lover",
+            avatar_url=row.get("avatar_url"),
+            bio=row.get("bio"),
+        )
+
+    def _sanitize_username(self, value: str) -> str:
+        cleaned = re.sub(r"[^a-z0-9_]+", "-", value.strip().lower()).strip("-")
+        return cleaned[:30] or "grower"
+
+    def _build_username(self, user_id: str, user_email: str | None) -> str:
+        base = self._sanitize_username((user_email or "grower").split("@")[0])
+        return f"{base}-{user_id[:8]}"[:30]
+
+    def _build_display_name(self, user_email: str | None) -> str:
+        if not user_email:
+            return "Plant Lover"
+        return user_email.split("@")[0].replace(".", " ").replace("_", " ").title()[:80]

@@ -230,3 +230,76 @@ class AnalysisPreview(BaseModel):
     summary: str
     issues: list[str]
     is_urgent: bool
+
+
+class CommunityProfile(BaseModel):
+    id: UUID
+    username: str
+    display_name: str
+    avatar_url: str | None = None
+    bio: str | None = None
+
+
+class CommunityPostCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=2000)
+    image_url: str | None = None
+
+
+class CommunityCommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=1000)
+
+
+class CommunityPostUpdate(BaseModel):
+    body: str = Field(min_length=1, max_length=2000)
+    image_url: str | None = None
+
+
+class CommunityCommentUpdate(BaseModel):
+    body: str = Field(min_length=1, max_length=1000)
+
+
+class CommunityComment(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    post_id: UUID
+    author: CommunityProfile
+    body: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_owner: bool = False
+    updated_at: datetime | None = None
+
+
+class CommunityPost(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    author: CommunityProfile
+    body: str
+    image_url: str | None = None
+    like_count: int = 0
+    comment_count: int = 0
+    viewer_has_liked: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_owner: bool = False
+    updated_at: datetime | None = None
+
+
+class CommunityFeedResponse(BaseModel):
+    posts: list[CommunityPost]
+    next_offset: int | None = None
+
+
+class CommunityProfileUpdate(BaseModel):
+    username: str | None = Field(default=None, min_length=3, max_length=30)
+    display_name: str | None = Field(default=None, min_length=1, max_length=80)
+    avatar_url: str | None = Field(default=None, max_length=500)
+    bio: str | None = Field(default=None, max_length=240)
+
+
+class CommunityLikeResponse(BaseModel):
+    post_id: UUID
+    like_count: int
+    viewer_has_liked: bool
+
+
+class CommunityProfilePage(BaseModel):
+    profile: CommunityProfile
+    posts: list[CommunityPost]
+    next_offset: int | None = None

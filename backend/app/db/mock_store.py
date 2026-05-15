@@ -9,6 +9,17 @@ from app.db.seed_catalog import PLANT_CATALOG
 from app.models.schemas import (
     AnalysisResult,
     CompletionPoint,
+    CommunityComment,
+    CommunityCommentCreate,
+    CommunityCommentUpdate,
+    CommunityFeedResponse,
+    CommunityLikeResponse,
+    CommunityPost,
+    CommunityPostCreate,
+    CommunityPostUpdate,
+    CommunityProfile,
+    CommunityProfilePage,
+    CommunityProfileUpdate,
     DailyLog,
     DailyPlan,
     Garden,
@@ -36,7 +47,11 @@ class MockStore:
         self.logs: dict[UUID, list[DailyLog]] = defaultdict(list)
         self.plans: dict[UUID, DailyPlan] = {}
         self.completion_history: dict[UUID, list[CompletionPoint]] = defaultdict(list)
+        self.community_profiles: dict[str, CommunityProfile] = {}
+        self.community_posts: list[CommunityPost] = []
+        self.community_comments: dict[UUID, list[CommunityComment]] = defaultdict(list)
         self._bootstrap_demo_plants()
+        self._bootstrap_community()
 
     def _bootstrap_demo_plants(self) -> None:
         starters = [
@@ -114,6 +129,42 @@ class MockStore:
             related = [plant for plant in self.plants if plant.garden_id == garden.id]
             garden.plant_count = len(related)
             garden.health_score = round(sum((plant.current_health_score * 10) for plant in related) / len(related)) if related else 0
+
+    def _bootstrap_community(self) -> None:
+        demo_profile = CommunityProfile(
+            id=UUID("00000000-0000-0000-0000-000000000001"),
+            username="demo-grower",
+            display_name="Demo Grower",
+            bio="Sharing daily plant wins, setbacks, and recovery notes.",
+        )
+        friend_profile = CommunityProfile(
+            id=UUID("00000000-0000-0000-0000-000000000002"),
+            username="leaf-lab",
+            display_name="Leaf Lab",
+            bio="Urban balcony experiments and AI-assisted care routines.",
+        )
+        self.community_profiles[str(demo_profile.id)] = demo_profile
+        self.community_profiles["demo-user"] = demo_profile
+        self.community_profiles[str(friend_profile.id)] = friend_profile
+
+        post = CommunityPost(
+            author=friend_profile,
+            body="My basil bounced back after three cloudy days. I moved it closer to the rail, skipped one watering, and the new growth looks much happier now.",
+            image_url="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80",
+            like_count=3,
+            comment_count=1,
+            viewer_has_liked=False,
+            created_at=datetime.utcnow() - timedelta(hours=5),
+        )
+        self.community_posts.append(post)
+        self.community_comments[post.id] = [
+            CommunityComment(
+                post_id=post.id,
+                author=demo_profile,
+                body="The leaf color looks way better. Did the sun shift help more than the watering change?",
+                created_at=datetime.utcnow() - timedelta(hours=3),
+            )
+        ]
 
     def _default_plan(self, plant_id: UUID, common_name: str) -> DailyPlan:
         return DailyPlan(
@@ -369,3 +420,115 @@ class MockStore:
             plant_snapshots=snapshots,
             recommended_focus=f"Focus on {needs_attention.common_name} first, then keep task completion above {max(80, avg_completion)}% across the garden.",
         )
+
+    def get_or_create_community_profile(self, user_id: str, user_email: str | None = None) -> CommunityProfile:
+        existing = self.community_profiles.get(user_id)
+        if existing:
+            return existing
+        profile = CommunityProfile(
+            id=UUID(user_id) if self._is_uuid(user_id) else UUID("00000000-0000-0000-0000-000000000001"),
+            username=f"{(user_email or 'grower').split('@')[0].lower().replace('.', '-')}-{user_id[:8]}",
+            display_name=(user_email or "Plant Lover").split("@")[0].replace(".", " ").title(),
+        )
+        self.community_profiles[user_id] = profile
+        return profile
+
+    def update_community_profile(self, user_id: str, user_email: str | None, payload: CommunityProfileUpdate) -> CommunityProfile:
+        profile = self.get_or_create_community_profile(user_id, user_email)
+        updates = payload.model_dump(exclude_none=True)
+        updated = profile.model_copy(
+            update={
+                "username": updates.get("username", profile.username),
+                "display_name": updates.get("display_name", profile.display_name),
+                "avatar_url": updates.get("avatar_url", profile.avatar_url),
+                "bio": updates.get("bio", profile.bio),
+            }
+        )
+        self.community_profiles[user_id] = updated
+        return updated
+
+    def list_community_feed(self, user_id: str, user_email: str | None = None, limit: int = 20, offset: int = 0) -> CommunityFeedResponse:
+        self.get_or_create_community_profile(user_id, user_email)
+        posts = [post.model_copy(update={"comment_count": len(self.community_comments.get(post.id, []))}) for post in sorted(self.community_posts, key=lambda item: item.created_at, reverse=True)]
+        sliced = posts[offset:offset + limit]
+        next_offset = offset + limit if len(posts) > offset + limit else None
+        return CommunityFeedResponse(posts=sliced, next_offset=next_offset)
+
+    def create_community_post(self, user_id: str, user_email: str | None, payload: CommunityPostCreate) -> CommunityPost:
+        profile = self.get_or_create_community_profile(user_id, user_email)
+        post = CommunityPost(author=profile, body=payload.body.strip(), image_url=payload.image_url, is_owner=True)
+        self.community_posts.insert(0, post)
+        self.community_comments[post.id] = []
+        return post
+
+    def update_community_post(self, user_id: str, post_id: UUID, payload: CommunityPostUpdate) -> CommunityPost:
+        for index, post in enumerate(self.community_posts):
+            if post.id == post_id and str(post.author.id) == user_id:
+                updated = post.model_copy(update={"body": payload.body.strip(), "image_url": payload.image_url, "updated_at": datetime.utcnow(), "is_owner": True})
+                self.community_posts[index] = updated
+                return updated
+        raise ValueError("Post not found")
+
+    def delete_community_post(self, user_id: str, post_id: UUID) -> None:
+        self.community_posts = [post for post in self.community_posts if not (post.id == post_id and str(post.author.id) == user_id)]
+        self.community_comments.pop(post_id, None)
+
+    def list_community_comments(self, user_id: str, user_email: str | None, post_id: UUID) -> list[CommunityComment]:
+        self.get_or_create_community_profile(user_id, user_email)
+        comments = self.community_comments.get(post_id, [])
+        return [comment.model_copy(update={"is_owner": str(comment.author.id) == user_id}) for comment in comments]
+
+    def create_community_comment(self, user_id: str, user_email: str | None, post_id: UUID, payload: CommunityCommentCreate) -> CommunityComment:
+        profile = self.get_or_create_community_profile(user_id, user_email)
+        comment = CommunityComment(post_id=post_id, author=profile, body=payload.body.strip(), is_owner=True)
+        self.community_comments[post_id].append(comment)
+        for index, post in enumerate(self.community_posts):
+            if post.id == post_id:
+                self.community_posts[index] = post.model_copy(update={"comment_count": len(self.community_comments[post_id])})
+        return comment
+
+    def update_community_comment(self, user_id: str, comment_id: UUID, payload: CommunityCommentUpdate) -> CommunityComment:
+        for post_id, comments in self.community_comments.items():
+            for index, comment in enumerate(comments):
+                if comment.id == comment_id and str(comment.author.id) == user_id:
+                    updated = comment.model_copy(update={"body": payload.body.strip(), "updated_at": datetime.utcnow(), "is_owner": True})
+                    self.community_comments[post_id][index] = updated
+                    return updated
+        raise ValueError("Comment not found")
+
+    def delete_community_comment(self, user_id: str, comment_id: UUID) -> None:
+        for post_id, comments in self.community_comments.items():
+            next_comments = [comment for comment in comments if not (comment.id == comment_id and str(comment.author.id) == user_id)]
+            if len(next_comments) != len(comments):
+                self.community_comments[post_id] = next_comments
+                for index, post in enumerate(self.community_posts):
+                    if post.id == post_id:
+                        self.community_posts[index] = post.model_copy(update={"comment_count": len(next_comments)})
+                return
+        raise ValueError("Comment not found")
+
+    def toggle_community_like(self, user_id: str, user_email: str | None, post_id: UUID, liked: bool) -> CommunityLikeResponse:
+        self.get_or_create_community_profile(user_id, user_email)
+        for index, post in enumerate(self.community_posts):
+            if post.id == post_id:
+                next_count = post.like_count + 1 if liked and not post.viewer_has_liked else post.like_count - 1 if not liked and post.viewer_has_liked else post.like_count
+                updated = post.model_copy(update={"like_count": max(0, next_count), "viewer_has_liked": liked})
+                self.community_posts[index] = updated
+                return CommunityLikeResponse(post_id=post_id, like_count=updated.like_count, viewer_has_liked=liked)
+        return CommunityLikeResponse(post_id=post_id, like_count=0, viewer_has_liked=False)
+
+    def get_community_profile_page(self, viewer_user_id: str, username: str, limit: int = 20, offset: int = 0) -> CommunityProfilePage | None:
+        profile = next((profile for profile in self.community_profiles.values() if profile.username == username), None)
+        if profile is None:
+            return None
+        posts = [post.model_copy(update={"is_owner": str(post.author.id) == viewer_user_id}) for post in self.community_posts if post.author.username == username]
+        sliced = posts[offset:offset + limit]
+        next_offset = offset + limit if len(posts) > offset + limit else None
+        return CommunityProfilePage(profile=profile, posts=sliced, next_offset=next_offset)
+
+    def _is_uuid(self, value: str) -> bool:
+        try:
+            UUID(value)
+            return True
+        except ValueError:
+            return False

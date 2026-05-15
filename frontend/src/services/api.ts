@@ -1,10 +1,10 @@
 import axios from 'axios'
 
-import type { CatalogItem, ChatResponse, CompatibilityCheck, DailyLog, DailyPlan, Garden, GardenAnalytics, Plant, PlantAnalytics, PlantDetails, UserBadges, UserStats, Weather } from '../types'
+import type { CatalogItem, ChatResponse, CompatibilityCheck, CommunityComment, CommunityFeed, CommunityLikeResponse, CommunityPost, CommunityProfile, CommunityProfilePage, DailyLog, DailyPlan, Garden, GardenAnalytics, Plant, PlantAnalytics, PlantDetails, UserBadges, UserStats, Weather } from '../types'
 import { supabase } from './supabase'
 
 const api = axios.create({
-  baseURL: (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/$/, '') + '/',
+  baseURL: (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8001/api').replace(/\/$/, '') + '/',
 })
 
 api.interceptors.request.use(async (config) => {
@@ -140,5 +140,68 @@ export async function previewPlantAnalysis(plantId: string, file: File, observat
   form.append('image', file)
   if (observations) form.append('observations', observations)
   const { data } = await api.post<AnalysisPreview>(`plants/${plantId}/preview-analysis`, form)
+  return data
+}
+
+export async function fetchCommunityFeed(offset = 0, limit = 20) {
+  const { data } = await api.get<CommunityFeed>('community/feed', { params: { offset, limit } })
+  return data
+}
+
+export async function createCommunityPost(payload: { body: string; image_url?: string }) {
+  const { data } = await api.post<CommunityPost>('community/posts', payload)
+  return data
+}
+
+export async function deleteCommunityPost(postId: string) {
+  await api.delete(`community/posts/${postId}`)
+}
+
+export async function updateCommunityPost(postId: string, payload: { body: string; image_url?: string }) {
+  const { data } = await api.patch<CommunityPost>(`community/posts/${postId}`, payload)
+  return data
+}
+
+export async function fetchCommunityComments(postId: string) {
+  const { data } = await api.get<CommunityComment[]>(`community/posts/${postId}/comments`)
+  return data
+}
+
+export async function createCommunityComment(postId: string, payload: { body: string }) {
+  const { data } = await api.post<CommunityComment>(`community/posts/${postId}/comments`, payload)
+  return data
+}
+
+export async function updateCommunityComment(commentId: string, payload: { body: string }) {
+  const { data } = await api.patch<CommunityComment>(`community/comments/${commentId}`, payload)
+  return data
+}
+
+export async function deleteCommunityComment(commentId: string) {
+  await api.delete(`community/comments/${commentId}`)
+}
+
+export async function likeCommunityPost(postId: string) {
+  const { data } = await api.post<CommunityLikeResponse>(`community/posts/${postId}/like`)
+  return data
+}
+
+export async function unlikeCommunityPost(postId: string) {
+  const { data } = await api.delete<CommunityLikeResponse>(`community/posts/${postId}/like`)
+  return data
+}
+
+export async function fetchCommunityProfile() {
+  const { data } = await api.get<CommunityProfile>('community/profile/me')
+  return data
+}
+
+export async function updateCommunityProfile(payload: { username?: string; display_name?: string; avatar_url?: string; bio?: string }) {
+  const { data } = await api.patch<CommunityProfile>('community/profile/me', payload)
+  return data
+}
+
+export async function fetchCommunityProfilePage(username: string, offset = 0, limit = 20) {
+  const { data } = await api.get<CommunityProfilePage>(`community/profiles/${username}`, { params: { offset, limit } })
   return data
 }

@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { Flower2, LayoutDashboard, Leaf, MessageCircle } from 'lucide-react'
+import { Flower2, LayoutDashboard, Leaf, MessageCircle, Users } from 'lucide-react'
 
 import { AuthPage } from './pages/AuthPage'
+import { CommunityPage } from './pages/CommunityPage'
+import { CommunityProfilePage } from './pages/CommunityProfilePage'
 import { useAuth } from './context/AuthContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { GardenPage } from './pages/GardenPage'
@@ -10,6 +12,7 @@ import { PlantPage } from './pages/PlantPage'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/community', label: 'Community', icon: Users },
   { to: '/auth', label: 'Account', icon: Flower2 },
 ]
 
@@ -92,6 +95,8 @@ export default function App() {
     <Shell>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/community/profile/:username" element={<CommunityProfilePage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/garden/:gardenId" element={<GardenPage />} />
         <Route path="/plant/:plantId" element={<PlantPage />} />
